@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" prefHeight="364.0" prefWidth="433.0" spacing="20.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nidelv.SettingsController">
+    <children>
+      <HBox prefHeight="69.0" prefWidth="265.0">
+         <children>
+              <Button alignment="TOP_LEFT" contentDisplay="TOP" onAction="#switchToLeaderBoard" text="GO TO BOARD">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+              <Label alignment="CENTER" prefHeight="71.0" prefWidth="164.0" text="Settings">
+               <font>
+                  <Font size="35.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+      <HBox prefHeight="28.0" prefWidth="393.0">
+         <children>
+            <TextField fx:id="googleDocURL" prefHeight="25.0" prefWidth="351.0" promptText="https://docs.google.com/spreadsheets/{your google doc id}" />
+            <Button mnemonicParsing="false" onAction="#saveURL" prefHeight="25.0" prefWidth="75.0" text="save" />
+         </children>
+      </HBox>
+      <ChoiceBox fx:id="puljer" prefWidth="150.0" />
+    </children>
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+</VBox>

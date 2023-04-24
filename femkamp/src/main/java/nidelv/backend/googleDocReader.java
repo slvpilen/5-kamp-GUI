@@ -1,6 +1,5 @@
 package nidelv.backend;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -13,15 +12,15 @@ import com.opencsv.CSVReader;
 
 public class GoogleDocReader {
 
-    private final static String GOOGLEDOC_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzr19rA3wS8pD5iBbvbwzDYBypgyMUeN8t5tihOf5QevRdmQsC2bS41kCvg7SaxnnysIEpu1WAJl33/pub?output=csv";
+    //private final static String GOOGLEDOC_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzr19rA3wS8pD5iBbvbwzDYBypgyMUeN8t5tihOf5QevRdmQsC2bS41kCvg7SaxnnysIEpu1WAJl33/pub?output=csv";
 
 
-    public static List<List<String>> getDateFromDoc() throws IOException {
+    public static List<List<String>> getDateFromDoc(final String googleDocURL) throws IOException {
 
         List<List<String>> result = new ArrayList<>();
 
         try {
-            URL url = new URL(GOOGLEDOC_URL);
+            URL url = new URL(googleDocURL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             int responseCode = connection.getResponseCode();
@@ -46,12 +45,21 @@ public class GoogleDocReader {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new IOException("error reading from google dock. Link: " + GOOGLEDOC_URL);
+            throw new IOException("error reading from google dock. Link: " + googleDocURL);
         }
         return result;
     }
 
-    public static void main(String[] args) {
-        
+
+    
+    // tester
+    public static void main(String[] args) throws IOException {
+
+        List<List<String>> data = GoogleDocReader.getDateFromDoc("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzr19rA3wS8pD5iBbvbwzDYBypgyMUeN8t5tihOf5QevRdmQsC2bS41kCvg7SaxnnysIEpu1WAJl33/pub?output=csv");
+        for (List<String> liste : data) 
+            for (String elem : liste)
+                System.out.println(elem);
     }
+        
+    
 }
