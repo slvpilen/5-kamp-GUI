@@ -5,8 +5,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import nidelv.backend.SaveAndReadSettings;
+import nidelv.backend.Validation;
 
 import java.io.IOException;
+
 
 /**
  * JavaFX App
@@ -17,7 +20,21 @@ public class App extends Application {
     
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("leaderBoard"), 640, 480);
+        String firstScrene = "";
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/nidelv/leaderBoard.fxml"));
+        loader.load();
+        LeaderBoardController leaderBoardController = loader.getController();
+        try {
+            String URL = SaveAndReadSettings.getGoogleDocURL();
+            leaderBoardController.setURL(URL);
+            firstScrene = "leaderBoard";
+        }
+        catch (Exception e) {
+            System.out.println(e);
+            firstScrene = "settings";
+        }
+        scene = new Scene(loadFXML(firstScrene), 640, 480);
         stage.setScene(scene);
         stage.show();
     }

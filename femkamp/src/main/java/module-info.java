@@ -3,6 +3,8 @@ module nidelv {
     requires javafx.fxml;
     requires com.opencsv;
     requires javafx.graphics;
+    requires java.base;
+
 
     opens nidelv to javafx.fxml;
     exports nidelv;

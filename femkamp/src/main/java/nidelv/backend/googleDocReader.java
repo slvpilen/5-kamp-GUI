@@ -41,7 +41,7 @@ public class GoogleDocReader {
                 csvReader.close();
                 connection.disconnect();
             } else {
-                System.out.println("GET request failed. Response Code: " + responseCode);
+                throw new IOException("GET request failed. Response Code: " + responseCode);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,6 +49,7 @@ public class GoogleDocReader {
         }
         return result;
     }
+    
 
 
     
