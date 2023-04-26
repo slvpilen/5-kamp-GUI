@@ -21,6 +21,71 @@
             <artifactId>javafx-fxml</artifactId>
             <version>19</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.31.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.12.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-jetty</artifactId>
+            <version>1.31.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-sheets</artifactId>
+            <version>v4-rev581-1.25.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-java6</artifactId>
+            <version>1.15.0-rc</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-drive</artifactId>
+            <version>v3-rev305-1.25.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-gson</artifactId>
+            <version>1.39.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-jackson</artifactId>
+            <version>1.15.0-rc</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-drive</artifactId>
+        <version>v2-rev78-1.15.0-rc</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-gson</artifactId>
+            <version>1.39.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        
 
 
         <dependency>
@@ -29,9 +94,39 @@
             <version>5.5.2</version>
         </dependency>
 
+
+
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <executions>
+                    <execution>
+                    <id>default-cli</id>
+                    <configuration>
+                        <mainClass>nidelv.App</mainClass>
+                        <launcher>nidelv.App</launcher>
+                        <jvmArgs>
+                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.http=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.https=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.file=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.jar=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-exports=jdk.unsupported/sun.reflect=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=javafx.graphics/javafx.stage=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED</jvmArg>
+                        </jvmArgs>
+                    </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

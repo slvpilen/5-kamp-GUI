@@ -47,6 +47,7 @@ public class GoogleDocReader {
             e.printStackTrace();
             throw new IOException("error reading from google dock. Link: " + googleDocURL);
         }
+        result.forEach(item -> System.out.println(item));
         return result;
     }
     
