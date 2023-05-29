@@ -1,7 +1,10 @@
 package nidelv;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 import javafx.fxml.FXML;
+import nidelv.backend.GoogleDockReader2;
 import nidelv.backend.SaveAndReadSettings;
 import nidelv.backend.Validation;
 
@@ -14,11 +17,7 @@ public class LeaderBoardController {
         App.setRoot("settings");
     }
 
-    public void setURL(String googleDockURL) throws IOException {
-        Validation.googleDockURL(googleDockURL);
-        this.googleDockURL = googleDockURL;
-        SaveAndReadSettings.saveURL(this.googleDockURL);
-    }
+
 
     
 }

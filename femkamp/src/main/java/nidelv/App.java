@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import nidelv.backend.GoogleDockReader2;
 import nidelv.backend.SaveAndReadSettings;
 import nidelv.backend.Validation;
 
@@ -24,10 +25,10 @@ public class App extends Application {
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/nidelv/leaderBoard.fxml"));
         loader.load();
-        LeaderBoardController leaderBoardController = loader.getController();
+        //LeaderBoardController leaderBoardController = loader.getController();
         try {
             String URL = SaveAndReadSettings.getGoogleDocURL();
-            leaderBoardController.setURL(URL);
+            GoogleDockReader2.setSpreadsheetID(URL);
             firstScrene = "leaderBoard";
         }
         catch (Exception e) {

@@ -10,6 +10,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
@@ -19,6 +20,8 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -27,7 +30,13 @@ public class GoogleDockReader2 {
 
     private static Sheets sheetsService;
     private static String APPLICATION_NAME = "Google Sheets Example";
-    private static String SPREADSHEET_ID = "1sEkojzoIyxrt8ZI3536483bmjP4rwtxyUFWSxdTU7is";
+    private static String SPREADSHEET_ID;// = "1sEkojzoIyxrt8ZI3536483bmjP4rwtxyUFWSxdTU7is";
+
+    public static void setSpreadsheetID (String url) throws IOException, GeneralSecurityException {
+        SPREADSHEET_ID = extractSpreadsheetId(url);
+        sheetsService = getSheetsService();
+        //SaveAndReadSettings.saveURL(url);
+    }
 
     private static Credential authorize() throws IOException, GeneralSecurityException {
         InputStream in = GoogleDockReader2.class.getResourceAsStream("/credentials.json");
@@ -62,40 +71,63 @@ public class GoogleDockReader2 {
 
     public static List<String> getSpreadsheetNames() throws IOException, GeneralSecurityException {
 
-        Sheets service = getSheetsService();
-        Spreadsheet sp = service.spreadsheets().get(SPREADSHEET_ID).execute();
+
+        Spreadsheet sp = sheetsService.spreadsheets().get(SPREADSHEET_ID).execute();
         List<Sheet> sheets = sp.getSheets();
         List<String> sheetNames = sheets.stream().map(sheet -> sheet.getProperties().getTitle()).collect(Collectors.toList());
     
         return sheetNames;
+    }
+
+    private static String extractSpreadsheetId(String url) {
+        String pattern = "https://docs\\.google\\.com/spreadsheets/d/([a-zA-Z0-9-_]+)/";
+        Pattern compiledPattern = Pattern.compile(pattern);
+        Matcher matcher = compiledPattern.matcher(url);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            throw new IllegalArgumentException("Invalid Google Sheets URL");
+        }
+    }
+
+    public static Get getRespons(String sheetName) throws IOException {
+        String range = sheetName+"!A2:P25";
+
+        // execute will update from web
+        return sheetsService.spreadsheets().values()
+            .get(SPREADSHEET_ID, range);
+            //.execute();
+
+    //     while (true){
+    //     List<List<Object>> values = response.getValues();
+
+    //     if (values == null || values.isEmpty()) {
+    //         System.out.println("no data found"); // throw a exception instead??
+    //     } else {
+    //         for (List<Object> row : values) {
+    //             System.out.printf("%s %s from %s\n", row.get(5), row.get(4), row.get(1));
+    //         }
+    //     }
+    // }
+        //return values;
+        
     }
     
     
     
 
     public static void main(String[] args) throws IOException, GeneralSecurityException {
-        sheetsService = getSheetsService();
-        String range = "pulje1!A2:F10";
 
-        while (true) {
-        ValueRange response = sheetsService.spreadsheets().values()
-            .get(SPREADSHEET_ID, range)
-            .execute();
+        //GoogleDockReader2.setSpreadsheetID("https://docs.google.com/spreadsheets/d/1sEkojzoIyxrt8ZI3536483bmjP4rwtxyUFWSxdTU7is/edit#gid=0");
+        GoogleDockReader2.setSpreadsheetID("https://docs.google.com/spreadsheets/d/1-lEYgwkYeuHEXyxK6Fga0L6H5fW-LN4bE003jCCcjHc/edit#gid=0");
 
-        List<List<Object>> values = response.getValues();
+        List<String> spreadsheetNames = getSpreadsheetNames();
+        spreadsheetNames.forEach(name -> System.out.println(name));
 
-        if (values == null || values.isEmpty()) {
-            System.out.println("no data found"); // throw a exception instead??
-        } else {
-            for (List<Object> row : values) {
-                System.out.printf("%s %s from %s\n", row.get(5), row.get(4), row.get(1));
-            }
-        }
-    }
-        
+        System.out.println("----------");
+        //ValueRange response = getRespons(spreadsheetNames.get(0));
 
-        //List<String> spreadsheetNames = getSpreadsheetNames();
-        //spreadsheetNames.forEach(name -> System.out.println(name));
 
         
     }
