@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 
 import com.google.api.services.sheets.v4.Sheets.Spreadsheets.Get;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.common.cache.Cache;
+
+import nidelv.backend.Resultat.Lifter;
+import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
 public class Pulje {
 
@@ -23,7 +27,8 @@ public class Pulje {
 
     public Pulje(final String puljeName, com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get get) {
         this.puljeName = puljeName;
-        this.response = get;             
+        this.response = get;        
+        
     }
 
     // public void createLifters() throws IOException{
@@ -44,12 +49,19 @@ public class Pulje {
         int lifterid = 0;
         List<List<Object>> values = response.execute().getValues();
         for (int i = 0; i < values.size(); i++) {
-            if (values.get(i).size()==0) {
+
+            boolean tomRad = values.get(i).size()==0; 
+            if (tomRad) {
                 femkampKategoris.add(new FemkampKategori());
             }
             else {
+                try {
                 femkampKategoris.get(femkampKategoris.size()-1).addLifter(new Lifter(puljeName, lifterid, values.get(i)));
                 lifterid++;
+                }
+                catch (IllegalLifterDataException e) {
+                    handleUserInputExceptions(e);
+                }
             }
         }
         this.femkampKategoris = new ArrayList<>(femkampKategoris.stream().filter(femkampkat -> femkampkat.numberOfLifters()>0).collect(Collectors.toList()));
@@ -57,7 +69,8 @@ public class Pulje {
     }
 
     private void sortLifters() {
-        femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLifters(this.comparator));
+        if (comparator != null)
+            femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLifters(this.comparator));
     }
 
     public String getName() {
@@ -82,12 +95,26 @@ public class Pulje {
         for (int i = 0; i < values.size(); i++) {
             int i2 = i;
             Optional<Lifter> lifter = lifters.stream().filter(l -> l.getId()==i2).findFirst();  
-            if (lifter.isPresent())        
-                lifter.get().updateData(values.get(i));
+            if (lifter.isPresent())   
+
+                try {    
+
+                    lifter.get().updateLifter(values.get(i));
+                } catch (IllegalLifterDataException e) {
+
+                    handleUserInputExceptions(e);
+                }
+                // denne må håndteres med at løftere sletts og create kjøres på nytt
             else
                 throw new IllegalNumberOfLiftersException("can't find the missing lifter!"); 
         }
         sortLifters();                
+    }
+
+    // denne skal skrive meldingen til google sheet
+    public void handleUserInputExceptions(Exception e) {
+        System.out.println(e.getMessage());
+
     }
 
     public Collection<Lifter> getAllLiftersInPulje() {

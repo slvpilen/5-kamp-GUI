@@ -10,7 +10,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import nidelv.backend.GoogleDockReader2;
+import nidelv.backend.GoogleDockReader;
 import nidelv.backend.SaveAndReadSettings;
 
 public class SettingsController implements Initializable {
@@ -32,7 +32,7 @@ public class SettingsController implements Initializable {
         //loader.load();
         //LeaderBoardController leaderBoardController = loader.getController();
         try {
-            GoogleDockReader2.setSpreadsheetID(googleDocURL.getText());
+            GoogleDockReader.setSpreadsheetID(googleDocURL.getText());
             errorLabel.setStyle("-fx-text-fill: green;");
             errorLabel.setText("connection to google doc is OK");
         }

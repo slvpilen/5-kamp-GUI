@@ -4,15 +4,12 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.sheets.v4.model.ValueRange;
+import nidelv.backend.Resultat.Lifter;
 
 public class ManageData {
     
@@ -20,17 +17,16 @@ public class ManageData {
     private Collection<Pulje> puljer = new ArrayList<>();
 
     public ManageData() throws IOException, GeneralSecurityException {
-        GoogleDockReader2.setSpreadsheetID();
+        GoogleDockReader.setSpreadsheetID();
         createPulje();
-        // lag alle løftere i pulje, etter laget, kan være formateringsproblem, men ønsker alle blir laget
     }
 
     private void createPulje() throws IOException, GeneralSecurityException {
-        List<String> puleSpreadsheetNames = GoogleDockReader2.getSpreadsheetNames().stream().
+        List<String> puleSpreadsheetNames = GoogleDockReader.getSpreadsheetNames().stream().
         filter(n -> n.contains("pulje")).collect(Collectors.toList());
         puleSpreadsheetNames.forEach(ssName -> {
         try {
-            puljer.add(new Pulje(ssName, GoogleDockReader2.getRespons(ssName)));
+            puljer.add(new Pulje(ssName, GoogleDockReader.getRespons(ssName)));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -55,19 +51,16 @@ public class ManageData {
             try {
                 p.createLifters();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         });        
     }
 
     public void updatePuljer() {
-        //puljer.stream().parallel().forEach(p -> p.updateResults());
         puljer.forEach(p -> {
             try {
                 p.updateResults();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         });
@@ -76,20 +69,18 @@ public class ManageData {
 
     public static void main(String[] args) throws IOException, GeneralSecurityException {
         ManageData manageData = new ManageData();
-        //while (true)
-        //    manageData.updatePuljer();
 
-        Comparator<Lifter> totalKGComparator = new Comparator<Lifter>() {
+        Comparator<Lifter> poengComparator = new Comparator<Lifter>() {
             @Override
             public int compare(Lifter o1, Lifter o2) {
-                return (o2.getTotal()-o1.getTotal());
+                return Double.compare(o2.getPoeng(), o1.getPoeng());
             }
         };
 
         Pulje pulje = manageData.getPulje("pulje1");
-        pulje.setComparator(totalKGComparator);
+        pulje.setComparator(poengComparator);
 
-        pulje.getAllLiftersInPulje().forEach(l -> System.out.println(l));
+        pulje.getAllLiftersInPulje().forEach(lofter -> System.out.println(lofter));
     }
 }
             

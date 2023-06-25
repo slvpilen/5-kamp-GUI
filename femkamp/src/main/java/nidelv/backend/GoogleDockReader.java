@@ -13,7 +13,6 @@ import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
-import com.google.api.services.sheets.v4.model.ValueRange;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 
 
 
-public class GoogleDockReader2 {
+public class GoogleDockReader {
 
     private static Sheets sheetsService;
     private static String APPLICATION_NAME = "Google Sheets Example";
@@ -39,7 +38,7 @@ public class GoogleDockReader2 {
     }
 
     private static Credential authorize() throws IOException, GeneralSecurityException {
-        InputStream in = GoogleDockReader2.class.getResourceAsStream("/credentials.json");
+        InputStream in = GoogleDockReader.class.getResourceAsStream("/credentials.json");
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
             GsonFactory.getDefaultInstance(), new InputStreamReader(in)
         );
@@ -119,7 +118,7 @@ public class GoogleDockReader2 {
 
     public static void main(String[] args) throws IOException, GeneralSecurityException {
 
-        GoogleDockReader2.setSpreadsheetID();
+        GoogleDockReader.setSpreadsheetID();
   
         List<String> spreadsheetNames = getSpreadsheetNames();
         spreadsheetNames.forEach(name -> System.out.println(name));

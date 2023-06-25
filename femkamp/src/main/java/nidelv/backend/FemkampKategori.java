@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 
+import nidelv.backend.Resultat.Lifter;
+
 public class FemkampKategori {
 
     private String name;
@@ -16,10 +18,14 @@ public class FemkampKategori {
     }
 
     public void addLifter(Lifter lifter) {
+
+        String loftersFemkampkategori = lifter.getfemkampkategori();
+
         if (name == null)
-            this.name = lifter.getKatFemkamp();
-        else if (!name.equals(lifter.getKatFemkamp()))
-            throw new IllegalFemkampNavnException(lifter.getName() + " har en annen kategori enn tidligere loftere, som har: " + this.name);
+            this.name = loftersFemkampkategori;
+            
+        else if (!name.equals(loftersFemkampkategori))
+            throw new IllegalFemkampNavnException(lifter.getNavn() + " har en annen kategori enn tidligere loftere, som har: " + this.name);
 
         lifters.add(lifter);
     }
