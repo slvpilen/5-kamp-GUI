@@ -1,18 +1,22 @@
 package nidelv.backend;
 
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
-import com.google.common.cache.Cache;
 
 public class Lifter {
 
     private final String pulje;
     private final int id;
     private String vektklasse, name, kat, katFemkamp, lag, fodselsdato;
-    private double kroppsvekt, treHopp, kulekast, m40Sprint;
-    private int rykk1, rykk2, rykk3, stot1, stot2, stot3;
+    private double kroppsvekt;
+    private char gender;
+    private Map<String, Object> resultater = new HashMap<>();
+
+    private double points;
+
 
     public Lifter(final String pulje, int id, List<Object> data) {
         this.pulje = pulje;
@@ -29,23 +33,97 @@ public class Lifter {
             while(data.size()<16)
                 data.add(null);
         }
+        validateDate(data);
         this.vektklasse = (String) data.get(0);
         this.kroppsvekt = convertObjToDouble(data.get(1));
         this.kat = (String) data.get(2);
+        this.gender = this.kat.charAt(1);
         this.katFemkamp = (String) data.get(3);
         this.fodselsdato = (String) data.get(4);
         this.name = (String) data.get(5);
         this.lag = (String) data.get(6);
-        this.rykk1 = Math.max(0,convertObjToInt(data.get(7)));
-        this.rykk2 = Math.max(0, convertObjToInt(data.get(8)));
-        this.rykk3 = Math.max(0, convertObjToInt(data.get(9)));
-        this.stot1 = Math.max(0, convertObjToInt(data.get(10)));
-        this.stot2 = Math.max(0, convertObjToInt(data.get(11)));
-        this.stot3 = Math.max(0, convertObjToInt(data.get(12)));
-        this.treHopp = convertObjToDouble(data.get(13));
-        this.kulekast = convertObjToDouble(data.get(14));
-        this.m40Sprint = convertObjToDouble(data.get(15));
+
+        resultater.put("TreHopp", convertObjToDouble(data.get(13)));  
+        resultater.put("Kulekast", convertObjToDouble(data.get(14)));  
+        resultater.put("40Sprint", convertObjToDouble(data.get(15))); 
+
+        resultater.put("Rykk1", Math.max(0,convertObjToInt(data.get(7)))); 
+        resultater.put("Rykk2", Math.max(0, convertObjToInt(data.get(8))));  
+        resultater.put("Rykk3", Math.max(0, convertObjToInt(data.get(9))));  
+
+        resultater.put("Stot1", Math.max(0, convertObjToInt(data.get(10))));  
+        resultater.put("Stot2", Math.max(0, convertObjToInt(data.get(11)))); 
+        resultater.put("Stot3", Math.max(0, convertObjToInt(data.get(12)))); 
+
+        this.points = Poengberegning.calculateTotalPoints(resultater, gender, kroppsvekt);
     }
+
+    private void validateDate(List<Object> data) {
+
+        Object kroppsvekt = data.get(1);
+        if (kroppsvekt == null) 
+            throw new IllegalLifterDataException("Mangler kroppsvekt for lofter med navn: "+ data.get(5));
+        
+        try {
+            Double.parseDouble( (String) kroppsvekt);
+        } catch (NumberFormatException e) {
+            throw new IllegalLifterDataException("kroppsvekt: " + kroppsvekt +  " for lofter med navn " + data.get(5) + " er ikke riktig format");
+        }
+        
+
+        Object kategori = data.get(2);
+        if (kategori == null)
+            throw new IllegalLifterDataException("Mangler kategori for lofter med navn: "+ data.get(5));  
+
+        String kategoriStreng = (String) kategori;   
+
+        if (kategoriStreng.length() != 2)
+            throw new IllegalLifterDataException("Feil lengdde på kategori for lofter med navn: "+ data.get(5));  
+        
+        boolean gyldigKjonn = Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
+        if (!gyldigKjonn)
+            throw new IllegalLifterDataException("kat til lofter: "+ data.get(5) + " er ugyldig, slutter ikke på M eller K");  
+
+
+
+        for (int i = 7; i <= 12; i++) {
+            Object lift = data.get(i);
+            if (lift != null) {
+                try{
+                    int lifte = Integer.parseInt((String) lift);
+                } catch (NumberFormatException e) {
+                    throw new IllegalLifterDataException("loft: " + lift +  " for lofter med navn " + data.get(5) +  " er ikke riktig format");
+                }
+            }  
+        }
+
+        for (int i = 13; i <= 15; i++) {
+            Object trekampResultat = data.get(i);
+            if (trekampResultat != null) {
+                try {
+                    Double.parseDouble( (String) trekampResultat);
+                } catch (NumberFormatException e) {
+                    throw new IllegalLifterDataException("trekampresulktat: " + trekampResultat +  " for lofter med navn " + data.get(5) +  " er ikke riktig format");
+                }
+            }
+
+            // 15 er 40-meter
+            if (i == 15 && trekampResultat != null) {
+                int numberOfDecimals = countDecimalPlaces((String) trekampResultat);
+                if (numberOfDecimals > 1)
+                    throw new IllegalLifterDataException("40 meter skal rundes opp til 1/10! " + trekampResultat +  " for lofter med navn " + data.get(5) +  " opfylller ikke dette!");                
+            }
+         }
+    }
+    public static int countDecimalPlaces(String numStr) {
+        int decimalPlaces = 0;
+        int index = numStr.indexOf(".");
+        if (index != -1) {
+            decimalPlaces = numStr.length() - index - 1;
+        }
+        return decimalPlaces;
+}
+
 
     private double convertObjToDouble(Object obj) {
         if (obj == null) return 0.0;
@@ -76,7 +154,8 @@ public class Lifter {
         }
     }
 
-        
+
+       
                       
     
     public static String getNameFrom(List<Object> data) {
@@ -103,74 +182,23 @@ public class Lifter {
     public void setKatFemkamp(String katFemkamp) {
         this.katFemkamp = katFemkamp;
     }
+    public String getName() {
+        return this.name;
+    }
 
     public String getLag() {
         return this.lag;
     }
 
-    public void setLag(String lag) {
-        this.lag = lag;
-    }
-
-    public int getRykk1() {
-        return this.rykk1;
-    }
 
 
-    public int getRykk2() {
-        return this.rykk2;
-    }
+    // public int getTotal() {
+    //     int bestRykk = Math.max((int) resultater.get("rykk1"), Math.max((int) resultater.get("rykk2"), (int) resultater.get("rykk3")));
+    //     int bestStot = Math.max((int) resultater.get("stot1"), Math.max((int) resultater.get("stot2"), (int) resultater.get("stot3")));
 
-
-    public int getRykk3() {
-        return this.rykk3;
-    }
-
-
-    public int getStot1() {
-        return this.stot1;
-    }
-
-
-    public int getStot2() {
-        return this.stot2;
-    }
-
-
-    public int getStot3() {
-        return this.stot3;
-    }
-
-
-    public double getTreHopp() {
-        return this.treHopp;
-    }
-
-    public void setTreHopp(double treHopp) {
-        this.treHopp = treHopp;
-    }
-
-    public double getKulekast() {
-        return this.kulekast;
-    }
-
-
-    public double getM40Sprint() {
-        return this.m40Sprint;
-    }
-
-
-    public String getName() {
-        return this.name;
-    }
-
-    public int getTotal() {
-        int bestRykk = Math.max(rykk1, Math.max(rykk2, rykk3));
-        int bestStot = Math.max(stot1, Math.max(stot2, stot3));
-
-        if (bestRykk==0 || bestStot==0) return 0;
-        return bestRykk+bestStot;
-    }
+    //     if (bestRykk==0 || bestStot==0) return 0;
+    //     return bestRykk+bestStot;
+    // }
     
 
 
@@ -178,10 +206,25 @@ public class Lifter {
     @Override
     public String toString() {
         return "{" +
-            ", name='" + getName() + "'" +
-            ", total='" + getTotal();
+            "name='" + getName() + "'" +
+            ", total='" + //getTotal() +
+            "}";
    
+    }
+
+
+    public static class IllegalLifterDataException extends IllegalArgumentException {
+        public IllegalLifterDataException(String message) {
+            super(message);
+        }
     }
 
     
 }
+
+
+
+
+
+
+

@@ -32,8 +32,8 @@ public class GoogleDockReader2 {
     private static String APPLICATION_NAME = "Google Sheets Example";
     private static String SPREADSHEET_ID;// = "1sEkojzoIyxrt8ZI3536483bmjP4rwtxyUFWSxdTU7is";
 
-    public static void setSpreadsheetID (String url) throws IOException, GeneralSecurityException {
-        SPREADSHEET_ID = extractSpreadsheetId(url);
+    public static void setSpreadsheetID () throws IOException, GeneralSecurityException {
+        SPREADSHEET_ID = extractSpreadsheetId(Settings.googleDockURL_plotting);
         sheetsService = getSheetsService();
         //SaveAndReadSettings.saveURL(url);
     }
@@ -119,9 +119,8 @@ public class GoogleDockReader2 {
 
     public static void main(String[] args) throws IOException, GeneralSecurityException {
 
-        //GoogleDockReader2.setSpreadsheetID("https://docs.google.com/spreadsheets/d/1sEkojzoIyxrt8ZI3536483bmjP4rwtxyUFWSxdTU7is/edit#gid=0");
-        GoogleDockReader2.setSpreadsheetID("https://docs.google.com/spreadsheets/d/1-lEYgwkYeuHEXyxK6Fga0L6H5fW-LN4bE003jCCcjHc/edit#gid=0");
-
+        GoogleDockReader2.setSpreadsheetID();
+  
         List<String> spreadsheetNames = getSpreadsheetNames();
         spreadsheetNames.forEach(name -> System.out.println(name));
 

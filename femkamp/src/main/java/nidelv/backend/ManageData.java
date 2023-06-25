@@ -16,11 +16,11 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 
 public class ManageData {
     
-    private static final String SPREAD_SHEET_ID = "https://docs.google.com/spreadsheets/d/1-lEYgwkYeuHEXyxK6Fga0L6H5fW-LN4bE003jCCcjHc/edit#gid=0";
+    private static final String SPREAD_SHEET_ID = Settings.googleDockURL_plotting;
     private Collection<Pulje> puljer = new ArrayList<>();
 
     public ManageData() throws IOException, GeneralSecurityException {
-        GoogleDockReader2.setSpreadsheetID(SPREAD_SHEET_ID);
+        GoogleDockReader2.setSpreadsheetID();
         createPulje();
         // lag alle løftere i pulje, etter laget, kan være formateringsproblem, men ønsker alle blir laget
     }
@@ -89,7 +89,7 @@ public class ManageData {
         Pulje pulje = manageData.getPulje("pulje1");
         pulje.setComparator(totalKGComparator);
 
-        pulje.getLifters().forEach(l -> System.out.println(l));
+        pulje.getAllLiftersInPulje().forEach(l -> System.out.println(l));
     }
 }
             
