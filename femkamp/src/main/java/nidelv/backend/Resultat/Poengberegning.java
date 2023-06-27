@@ -69,35 +69,38 @@ public class Poengberegning {
 
 
     public static double calculatePoints(Ovelse ovelse, char kjonn, double kroppsvekt) {
-        String ovelseNavn = ovelse.getNavn();
+        String ovelseNavn = ovelse.getNavnUtenForsok();
         double resultat = ovelse.getResultat();
 
-        if ("treHopp".equals(ovelseNavn)) 
-            return round(resultat*20, 2);
+        switch (ovelseNavn){
 
-        if ("kuleKast".equals(ovelseNavn)) 
-            return round(resultat*13, 2);
+            case "trehopp":
+                return calculateTreHoppScore(resultat);
 
-        if ("40Sprint".equals(ovelseNavn)) 
-            return round(calculateSprintScore(resultat), 2);
+            case "kuleKast":
+                return calculateKulekastScore(resultat);
 
-        if (ovelseNavn.contains("rykk") || 
-            ovelseNavn.contains("stot")) 
-            return round(calculateSinclaire(kjonn, kroppsvekt, (int) resultat)*1.2, 2);
-        
-        throw new IllegalArgumentException("Invalid ovelse: " + ovelse);
+            case "40Sprint":
+                return calculateSprintScore(resultat);
+            
+            case "rykk":
+            case "stot":
+                return round(calculateSinclaire(kjonn, kroppsvekt, (int) resultat)*1.2, 2);
+
+            default:
+                throw new IllegalArgumentException("Invalid ovelse: " + ovelse);
+        }
     }
 
-
-    private static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
-
-        long factor = (long) Math.pow(10, places);
-        value = value * factor;
-        long tmp = Math.round(value);
-        return (double) tmp / factor;
+    private static double calculateTreHoppScore(double lengde) {
+        double score = lengde*20;
+        return round(score, 2);
     }
 
+    private static double calculateKulekastScore(double lengde) {
+        double score = lengde*13;
+        return round(score, 2);
+    }
 
     private static int calculateSprintScore(double time) {
         double BASE_TIME = 8.0;
@@ -109,17 +112,26 @@ public class Poengberegning {
         int scoreChange = (int) (difference / TIME_DELTA) * SCORE_DELTA;
         int finalScore = BASE_SCORE - scoreChange;
         
-        // Poengsum kan ikke være 0 eller negativ
-        if (finalScore < 0) {
+        boolean negativeScore = finalScore < 0;
+        if (negativeScore) {
             finalScore = 0;
         }
 
-        // tid 0 er ikke mulig og tolkes ikke godkjent løp gjennomført, gir 0 poeng
-        if (time <= TIME_DELTA) {
+        boolean impossibleTime = time <= TIME_DELTA;
+        if (impossibleTime) {
             finalScore = 0;
         }
         
         return finalScore;
+    }
+    
+    private static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 
 
@@ -128,20 +140,26 @@ public class Poengberegning {
         double coefficient;
         double divisor;
 
-        if (kjonn == 'M') {
-            coefficient = 0.751945030;
-            divisor = 175.508;
-        }
-        else if (kjonn == 'K') {
-            coefficient = 0.783497476;
-            divisor = 153.655;
-        }
-        else {
-            throw new IllegalArgumentException("Not a valid kjonn");
+        switch(kjonn) {
+
+            case 'M':
+                coefficient = 0.751945030;
+                divisor = 175.508;
+                break;
+            
+            case 'K':
+                coefficient = 0.783497476;
+                divisor = 153.655;
+                break;
+            
+            default:
+                throw new IllegalArgumentException("Not a valid kjonn");            
+
         }
 
+
         points = weight * Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2));
-        return points;
+        return round(points, 2);
 
     }
 

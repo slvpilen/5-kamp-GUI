@@ -99,6 +99,10 @@ public class Ovelse {
         return this.navn;
     }
 
+    public String getNavnUtenForsok() {
+        return getNavn().replace("1", "").replace("2", "").replace("3", "").replace(", ", "");
+    }
+
     
     public static int countDecimalPlaces(String numStr) {
         int decimalPlaces = 0;
