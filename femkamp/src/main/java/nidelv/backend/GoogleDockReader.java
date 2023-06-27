@@ -93,24 +93,9 @@ public class GoogleDockReader {
     public static Get getRespons(String sheetName) throws IOException {
         String range = sheetName+"!A2:P25";
 
-        // execute will update from web
         return sheetsService.spreadsheets().values()
             .get(SPREADSHEET_ID, range);
-            //.execute();
-
-    //     while (true){
-    //     List<List<Object>> values = response.getValues();
-
-    //     if (values == null || values.isEmpty()) {
-    //         System.out.println("no data found"); // throw a exception instead??
-    //     } else {
-    //         for (List<Object> row : values) {
-    //             System.out.printf("%s %s from %s\n", row.get(5), row.get(4), row.get(1));
-    //         }
-    //     }
-    // }
-        //return values;
-        
+       
     }
     
     

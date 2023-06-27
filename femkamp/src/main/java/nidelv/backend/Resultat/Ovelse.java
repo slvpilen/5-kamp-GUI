@@ -2,7 +2,6 @@ package nidelv.backend.Resultat;
 
 import java.util.Arrays;
 import java.util.Collection;
-
 import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
 public class Ovelse {
@@ -43,14 +42,13 @@ public class Ovelse {
 
 
     private void validateLoft(Object lift) {
-            if (lift != null) {
-                try{
-                    int loft = Integer.parseInt((String) lift);
-                } catch (NumberFormatException e) {
-                    throw new IllegalLifterDataException("loft: " + lift +  " er ikke riktig format");
-                }
-            }  
-
+        if (lift != null) {
+            try{
+                Integer.parseInt((String) lift);
+            } catch (NumberFormatException e) {
+                throw new IllegalLifterDataException("loft: " + lift +  " er ikke riktig format");
+            }
+        }  
     } 
 
     private void valdateHoppOgKast(Object treKamp) {
@@ -144,7 +142,5 @@ public class Ovelse {
     public String toString() {
         return "{ovelse: " + this.navn +  "resultat: " + resultat + "}";
     }
-
-
 
 }

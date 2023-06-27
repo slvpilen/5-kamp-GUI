@@ -3,8 +3,6 @@ package nidelv.backend.Resultat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -72,7 +70,7 @@ public class Poengberegning {
         String ovelseNavn = ovelse.getNavnUtenForsok();
         double resultat = ovelse.getResultat();
 
-        switch (ovelseNavn){
+        switch (ovelseNavn) {
 
             case "trehopp":
                 return calculateTreHoppScore(resultat);
@@ -131,6 +129,7 @@ public class Poengberegning {
         long factor = (long) Math.pow(10, places);
         value = value * factor;
         long tmp = Math.round(value);
+
         return (double) tmp / factor;
     }
 

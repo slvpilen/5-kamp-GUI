@@ -2,17 +2,11 @@ package nidelv.backend;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.google.api.services.sheets.v4.Sheets.Spreadsheets.Get;
-import com.google.api.services.sheets.v4.model.ValueRange;
-import com.google.common.cache.Cache;
-
 import nidelv.backend.Resultat.Lifter;
 import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
@@ -21,7 +15,6 @@ public class Pulje {
     private final String puljeName;
     private Comparator<Lifter> comparator;
     private com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get response;
-    //private ArrayList<Lifter> lifters = new ArrayList<>();
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
 
 
@@ -31,15 +24,6 @@ public class Pulje {
         
     }
 
-    // public void createLifters() throws IOException{
-    //     if (lifters.size()>0) throw new IllegalStateException("already created some lifters!");
-    //     List<List<Object>> values = response.execute().getValues();
-    //     values = values.stream().filter(line -> line.size()>0).collect(Collectors.toList());
-    //     for (int i = 0; i < values.size(); i++) {
-    //         lifters.add(new Lifter(puljeName, i, values.get(i)));                  
-    //     }
-    //     sortLifters();
-    // }
 
     public void createLifters() throws IOException{
         if (femkampKategoris.size()>0) throw new IllegalStateException("already created some lifters!");
