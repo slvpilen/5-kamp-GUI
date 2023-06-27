@@ -98,8 +98,8 @@ public class Pulje {
             if (lifter.isPresent())   
 
                 try {    
-
-                    lifter.get().updateLifter(values.get(i));
+                    lifter.get().setSheetLine(values.get(i));
+                    lifter.get().updateLifter();
                 } catch (IllegalLifterDataException e) {
 
                     handleUserInputExceptions(e);

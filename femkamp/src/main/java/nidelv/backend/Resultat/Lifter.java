@@ -16,6 +16,7 @@ public class Lifter {
     private double kroppsvekt;
     private char kjonn;
     private Collection<Ovelse> ovelser = new ArrayList<>();
+    private List<Object> sheetLine;
 
     private double poeng;
 
@@ -24,53 +25,17 @@ public class Lifter {
         this.pulje = pulje;
         this.linjeId = linjeId;
 
-        setLifterData(sheetLine);
-        createOvelser(sheetLine);
-
-    }
-
-    public int getId() {
-        return linjeId;
-    }
-
-    // finn bedre navn for denne metoden
-    private void setLifterData(List<Object> sheetLine) {
         standarizeSheetLine(sheetLine);
-        validateLine(sheetLine);
+        // obs burde egt validert først, men bruker metode som henter fra this.shetLine
+        setSheetLine(sheetLine);
+        validateLofterInfo();
 
-        this.vektklasse = (String) hentLofterInfo("vektklasse", sheetLine);
-        this.kroppsvekt = Ovelse.convertObjToDouble(hentLofterInfo("kroppsvekt", sheetLine));
-        this.kategori = (String) hentLofterInfo("kategori", sheetLine);
-        this.kjonn = this.kategori.charAt(1);
-        this.femkampkategori = (String) hentLofterInfo("femkampkategori", sheetLine);
-        this.fodselsdato = (String) hentLofterInfo("fodselsdato", sheetLine);
-        this.nvn = (String) hentLofterInfo("navn", sheetLine);
-        this.lag = (String) hentLofterInfo("lag", sheetLine);
+        updateLifterData();
+        createOvelser();
+        updatePoeng();
 
     }
 
-
-
-    public void updateLifter(List<Object> sheetLine) {
-        setLifterData(sheetLine); 
-        updateOvelser(sheetLine);
-    }
-
-    private void updateOvelser(List<Object> sheetLine) {
-        for (String ovelseNavn : Ovelse.validOvelser) {
-
-            int kolonneIndexTilOvelse = Settings.rekkefolgeKolonner.indexOf(ovelseNavn);
-            updateOvelse(ovelseNavn, sheetLine.get(kolonneIndexTilOvelse));
-            
-        }
-
-        this.poeng = Poengberegning.calculateTotalPoeng(ovelser, kjonn, kroppsvekt);
-    }
-
-
-    private void updateOvelse(String navn, Object ovelseOppdatert){
-        ovelser.stream().filter(ovelse-> ovelse.getNavn().equals(navn)).findFirst().get().setResultat(ovelseOppdatert);
-    }
 
     private void standarizeSheetLine(List<Object> sheetLine) {
         if (sheetLine.size()<16){
@@ -79,18 +44,69 @@ public class Lifter {
         }
     }
 
-    private void createOvelser(List<Object> sheetLine) {
+    public void setSheetLine(List<Object> sheetLine) {
+        this.sheetLine = sheetLine;
+    }
+
+
+    // finn bedre navn for denne metoden
+    private void updateLifterData() {
+        validateLofterInfo();
+
+        this.vektklasse = (String) hentLofterInfo("vektklasse");
+        this.kroppsvekt = Ovelse.convertObjToDouble(hentLofterInfo("kroppsvekt"));
+        this.kategori = (String) hentLofterInfo("kategori");
+        this.kjonn = this.kategori.charAt(1);
+        this.femkampkategori = (String) hentLofterInfo("femkampkategori");
+        this.fodselsdato = (String) hentLofterInfo("fodselsdato");
+        this.nvn = (String) hentLofterInfo("navn");
+        this.lag = (String) hentLofterInfo("lag");
+
+    }
+
+    private void createOvelser() {
         for (String ovelseNavn : Ovelse.validOvelser) {
 
             int kolonneIndexTilOvelse = Settings.rekkefolgeKolonner.indexOf(ovelseNavn);
             ovelser.add(new Ovelse(ovelseNavn, sheetLine.get(kolonneIndexTilOvelse)));
 
         }
+    }
 
+
+    public int getId() {
+        return linjeId;
+    }
+
+
+
+
+    public void updateLifter() {
+        updateLifterData(); 
+        updateOvelser();
+        updatePoeng();
+    }
+
+    private void updateOvelser() {
+        for (String ovelseNavn : Ovelse.validOvelser) {
+
+            int kolonneIndexTilOvelse = Settings.rekkefolgeKolonner.indexOf(ovelseNavn);
+            updateOvelse(ovelseNavn, sheetLine.get(kolonneIndexTilOvelse));
+        }
+    }
+
+
+    private void updateOvelse(String navn, Object ovelseOppdatert){
+        ovelser.stream().filter(ovelse-> ovelse.getNavn().equals(navn)).findFirst().get().setResultat(ovelseOppdatert);
+    }
+
+
+
+    private void updatePoeng() {
         this.poeng = Poengberegning.calculateTotalPoeng(ovelser, kjonn, kroppsvekt);
     }
 
-    private Object hentLofterInfo(String type, List<Object> sheetLine) {
+    private Object hentLofterInfo(String type) {
         boolean validType = Settings.rekkefolgeKolonner.contains(type);
         if (!validType)
             throw new IllegalArgumentException("type : " + type + "er ikke en gyldig type.");
@@ -100,42 +116,54 @@ public class Lifter {
     }
 
 
-    private void validateLine(List<Object> sheetLine) {
+    private void validateLofterInfo() {
 
-        String navn = (String) hentLofterInfo("navn", sheetLine);
-        boolean tomtNavn = navn.length() == 0;
-        navn = "'" + navn + "'";
+        String lofterNavn = (String) hentLofterInfo("navn");
+        boolean tomtNavn = lofterNavn.length() == 0;
+
+        lofterNavn = "'" + lofterNavn + "'";
         if (tomtNavn)
-            navn = "'@NO_NAME'";
+            lofterNavn = "'@NO_NAME'";
+        
+        validateKroppsvekt(lofterNavn);
 
-        Object kroppsvekt = hentLofterInfo("kroppsvekt", sheetLine);
+        validateKategori(lofterNavn);
+  
+    }
+       
+                    
+    private void validateKroppsvekt(String lofterNavn) {
+        Object kroppsvekt = hentLofterInfo("kroppsvekt");
         if (kroppsvekt == null) 
-            throw new IllegalLifterDataException("Mangler kroppsvekt for lofter med navn: "+ navn);
+            throw new IllegalLifterDataException("Mangler kroppsvekt for lofter med navn: "+ lofterNavn);
         
         try {
             Double.parseDouble( (String) kroppsvekt);
         } catch (NumberFormatException e) {
-            throw new IllegalLifterDataException("kroppsvekt: " + kroppsvekt +  " for lofter med navn " + navn + " er ikke riktig format");
+            throw new IllegalLifterDataException("kroppsvekt: " + kroppsvekt +  " for lofter med navn " + lofterNavn + " er ikke riktig format");
         }
-        
+    }
 
-        Object kategori = hentLofterInfo("kategori", sheetLine);
+    private void validateKategori(String lofterNavn) {
+        Object kategori = hentLofterInfo("kategori");
         if (kategori == null)
-            throw new IllegalLifterDataException("Mangler kategori for lofter med navn: "+ navn);  
+            throw new IllegalLifterDataException("Mangler kategori for lofter med navn: "+ lofterNavn);  
 
         String kategoriStreng = (String) kategori;   
 
         if (kategoriStreng.length() != 2)
-            throw new IllegalLifterDataException("Feil lengde på kategori for lofter med navn: " + navn);  
-        
-        boolean gyldigKjonn = Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
-        if (!gyldigKjonn)
-            throw new IllegalLifterDataException("kategori til lofter: "+ navn + " er ugyldig, slutter ikke på M eller K");  
-
+            throw new IllegalLifterDataException("Feil lengde på kategori for lofter med navn: " + lofterNavn);  
+            
+        validateKjonn(lofterNavn, kategoriStreng);
     }
 
-       
-                      
+    private void validateKjonn(String lofterNavn, String kategoriStreng) {
+        boolean gyldigKjonn = Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
+        if (!gyldigKjonn)
+            throw new IllegalLifterDataException("kategori til lofter: "+ lofterNavn + " er ugyldig, slutter ikke på M eller K");  
+
+    }
+    
 
     public String getPulje() {
         return this.pulje;
