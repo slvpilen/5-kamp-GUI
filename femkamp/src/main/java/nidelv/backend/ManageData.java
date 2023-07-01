@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import nidelv.backend.Pulje.IllegalNumberOfLiftersException;
 import nidelv.backend.Resultat.Lifter;
 
 public class ManageData {
@@ -17,16 +18,16 @@ public class ManageData {
     private Collection<Pulje> puljer = new ArrayList<>();
 
     public ManageData() throws IOException, GeneralSecurityException {
-        GoogleDockReader.setSpreadsheetID();
+        GoogleDockReaderAndWriter.setSpreadsheetIDAndSheetService();
         createPulje();
     }
 
     private void createPulje() throws IOException, GeneralSecurityException {
-        List<String> puleSpreadsheetNames = GoogleDockReader.getSpreadsheetNames().stream().
+        List<String> puleSpreadsheetNames = GoogleDockReaderAndWriter.getSpreadsheetNames().stream().
         filter(n -> n.contains("pulje")).collect(Collectors.toList());
         puleSpreadsheetNames.forEach(ssName -> {
         try {
-            puljer.add(new Pulje(ssName, GoogleDockReader.getRespons(ssName)));
+            puljer.add(new Pulje(ssName, GoogleDockReaderAndWriter.getRespons(ssName)));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -57,31 +58,22 @@ public class ManageData {
     }
 
     public void updatePuljer() {
-        puljer.forEach(p -> {
+        puljer.forEach(pulje -> {
             try {
-                p.updateResults();
+                pulje.updateResults();
+            } catch (IllegalNumberOfLiftersException e) {
+                try {
+                    pulje.createLifters();
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
     }
 
-
-    public static void main(String[] args) throws IOException, GeneralSecurityException {
-        ManageData manageData = new ManageData();
-
-        Comparator<Lifter> poengComparator = new Comparator<Lifter>() {
-            @Override
-            public int compare(Lifter o1, Lifter o2) {
-                return Double.compare(o2.getPoeng(), o1.getPoeng());
-            }
-        };
-
-        Pulje pulje = manageData.getPulje("pulje1");
-        pulje.setComparator(poengComparator);
-
-        pulje.getAllLiftersInPulje().forEach(lofter -> System.out.println(lofter));
-    }
 }
             
 

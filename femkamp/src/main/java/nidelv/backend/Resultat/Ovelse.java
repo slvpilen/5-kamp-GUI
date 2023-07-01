@@ -1,107 +1,156 @@
 package nidelv.backend.Resultat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+
 import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
 public class Ovelse {
-    public static final Collection<String> validOvelser = Arrays.asList("rykk1", "rykk2", "rykk3", "stot1","stot2", "stot3", "treHopp", "kuleKast", "40Sprint");
+    public static final Collection<String> validOvelser = Arrays.asList("rykk", "stot", "treHopp", "kuleKast", "40Sprint");
 
-    private final String navn;
-    private double resultat;
+    protected final String navn;
 
-    public Ovelse(String navn, Object resultat) {
-        validateInput(navn, resultat);
+    // kun løft bruker alle forsøk (ikke 3-kamp øvelsene)
+    private int forsok1;
+    private int forsok2;
+    private int forsok3;
+
+    protected double besteResultat;
+
+    public Ovelse(String navn, List<Object> forsok) {
+        validateInput(navn, forsok);
 
         this.navn = navn;
-        setResultat(resultat);
+        updateBesteResultatOgAlleForsok(forsok);
     }
     
-    private void validateInput(String navn, Object resultat) {
+    protected void validateInput(String navn, List<Object> forsok) {
         if (!validOvelser.contains(navn))        
             throw new IllegalArgumentException(navn + " er ikke en valid ovelsenavn");
         
         boolean isLoft = navn.contains("rykk") || navn.contains("stot");
-
-        if (isLoft) 
-            validateLoft(resultat);
-
-
         boolean isTreHopp = navn.equals("treHopp");
         boolean isKuleKast = navn.equals("kuleKast");
-
-        if (isTreHopp || isKuleKast) 
-            valdateHoppOgKast(resultat);
-        
-
         boolean isSprint40 = navn.equals("40Sprint");
 
+        if (isLoft) 
+            validateLoft(forsok);
+
+        if (isTreHopp || isKuleKast) 
+            valdateHoppOgKast(forsok);
+
         if (isSprint40)
-            validateSprint40(resultat);
+            validateSprint40(forsok);
+    }
+
+    private void validateLoft(List<Object> forsok) {
+        boolean feilAntallForsok = forsok.size() != 3;
+        if (feilAntallForsok)
+            throw new IllegalArgumentException("Feil antall forsok");
+
+        if (!anyForsok(forsok)) 
+            return;
+
+        try{
+            forsok.forEach(f -> convertObjToInt(f));
+
+        } catch (NumberFormatException e) {
+            throw new IllegalLifterDataException("loft: " + forsok +  " er ikke riktig format");
+        }        
+    } 
+
+    private boolean anyForsok(List<Object> forsoks) {
+        for (Object forsok : forsoks) {
+            if (forsok !=  null)
+                return true;
+        }
+        return false;
     }
 
 
-    private void validateLoft(Object lift) {
-        if (lift != null) {
-            try{
-                Integer.parseInt((String) lift);
-            } catch (NumberFormatException e) {
-                throw new IllegalLifterDataException("loft: " + lift +  " er ikke riktig format");
-            }
-        }  
-    } 
+    private void valdateHoppOgKast(List<Object> trekampForsok) {
 
-    private void valdateHoppOgKast(Object treKamp) {
-        if (treKamp == null) 
+        boolean feilAntallForsok = trekampForsok.size() != 1;
+        if (feilAntallForsok)
+            throw new IllegalArgumentException("Feil antall forsok");
+
+        if (anyForsok(trekampForsok)) 
             return;
+
         try {
-            Double.parseDouble( (String) treKamp);
+            trekampForsok.forEach(f -> convertObjToDouble(f));
+
         } catch (NumberFormatException e) {
-            throw new IllegalLifterDataException("trekampresultat: " + treKamp + " er ikke riktig format");
+            throw new IllegalLifterDataException("trekampresultat: " + trekampForsok + " er ikke riktig format");
         }
         
     }
 
-    private void validateSprint40(Object sprint40) {
-        if (sprint40 == null)
+    private void validateSprint40(List<Object> sprint40Forsok) {
+
+        boolean feilAntallForsok = sprint40Forsok.size() != 1;
+        if (feilAntallForsok)
+            throw new IllegalArgumentException("Feil antall forsok");
+
+        if (!anyForsok(sprint40Forsok))
             return;
 
-        int numberOfDecimals = countDecimalPlaces((String) sprint40);
-        if (numberOfDecimals > 1)
-            throw new IllegalLifterDataException("40 meter skal rundes opp til 1/10! " + sprint40 + " opfylller ikke dette!");       
-        
+        sprint40Forsok.forEach(sprint40 -> checkNumberOfDesimal(sprint40));
+
     }
 
-    public void setResultat(Object resultat) {
-        validateInput(navn, resultat);
+    private void checkNumberOfDesimal(Object sprint40) {
+        int numberOfDecimals = Ovelse.countDecimalPlaces((String) sprint40);
+        boolean forMangeDesimaler = numberOfDecimals > 1; 
 
-        boolean isLoft = navn.contains("rykk") || navn.contains("stot");
+        if (forMangeDesimaler)
+            throw new IllegalLifterDataException("40 meter skal rundes opp til 1/10! " + sprint40 + " opfylller ikke dette!");       
+    }
+
+    public void updateBesteResultatOgAlleForsok(List<Object> forsok) {
+        validateInput(navn, forsok);
+
+        boolean isLoft = navn.equals("rykk") || navn.equals("stot");
         boolean istreHopp = navn.equals("treHopp");
         boolean iskuleKast = navn.equals("kuleKast");
         boolean isSprint40 = navn.equals("40Sprint");
 
-        if (isLoft)
-            this.resultat = convertObjToInt(resultat);
+        if (isLoft) {
+            forsok1 = convertObjToInt(forsok.get(0));
+            forsok2 = convertObjToInt(forsok.get(1));
+            forsok3 = convertObjToInt(forsok.get(2));
+            updateBesteResultatForLift();
+        }
             
         else if (istreHopp || 
             iskuleKast ||
             isSprint40)
-            this.resultat = convertObjToDouble(resultat);
+            this.besteResultat = Ovelse.convertObjToDouble(forsok.get(0));
     }
 
-    public double getResultat() {
-        return resultat;
+    private void updateBesteResultatForLift() {
+        // lag metode som gir alle fosrok som liste
+        List<Integer> alleForsok = getForsok();
+        alleForsok.sort((a,b) -> b-a);
+        
+        this.besteResultat =  alleForsok.get(0);
+    }
+
+    public double getBesteResultat() {
+        return besteResultat;
+    }
+
+    public List<Integer> getForsok() {
+        return Arrays.asList(forsok1, forsok2, forsok3);
     }
 
     public String getNavn() {
         return this.navn;
     }
 
-    public String getNavnUtenForsok() {
-        return getNavn().replace("1", "").replace("2", "").replace("3", "").replace(", ", "");
-    }
 
-    
     public static int countDecimalPlaces(String numStr) {
         int decimalPlaces = 0;
         int index = numStr.indexOf(".");
@@ -114,33 +163,38 @@ public class Ovelse {
     public static double convertObjToDouble(Object obj) {
         if (obj == null) 
             return 0.0;
-        
-            if (obj instanceof String) {
+            
+        if (obj instanceof String) {
             try {
                 return Double.valueOf((String) obj);
             } catch (NumberFormatException e) {
-                return 0.0;
+                throw new NumberFormatException(obj + " kan ikke konverteres til et flyttall");
             }
 
         } else {
-            return 0.0;
+            throw new IllegalArgumentException("Objectet kan ikke konverteres");
         }
     }
 
-    private int convertObjToInt(Object obj) {
+    public static int convertObjToInt(Object obj) {
+        if (obj == null)
+            return 0;
+
         if (obj instanceof String) {
             try {
                 return Integer.valueOf((String) obj);
             } catch (NumberFormatException e) {
-                return 0;
+                throw new NumberFormatException(obj + " kan ikke konverteres til et heltall");
             }
+
         } else {
-            return 0;
+            throw new IllegalArgumentException("Objectet kan ikke konverteres");
         }
     }
 
+
     public String toString() {
-        return "{ovelse: " + this.navn +  "resultat: " + resultat + "}";
+        return "{ovelse: " + this.navn +  " resultat: " + besteResultat + "}";
     }
 
 }

@@ -8,71 +8,31 @@ import java.util.stream.Collectors;
 
 public class Poengberegning {
 
-    // OBS! usikker på om poeng for rykk og støt beregnes riktig, var uklart i regelverket.
+    // OBS! Usikker på om poeng for rykk og støt beregnes riktig, var uklart i regelverket.
 
 
-    public static double calculateTotalPoeng(Collection<Ovelse> ovelser, char kjonn, double kroppsvekt) {
+    public static double calculateTotalPoeng(Collection<Ovelse> ovelser, Lifter lifter) {
          double points = 0.0;
 
-        Collection<Ovelse> besteOvelser = onlyBestOvelse(ovelser);
+        char kjonn = lifter.getKjonn();
+        double kroppsvekt = lifter.getKroppsvekt();
 
-        for (Ovelse ovelse : besteOvelser) {
+        for (Ovelse ovelse : ovelser) {
             points+= calculatePoints(ovelse, kjonn, kroppsvekt);            
         }
 
         return round(points, 2);
     }
 
-    private static Collection<Ovelse> onlyBestOvelse(Collection<Ovelse> resultater) {
-        
-        Ovelse besteRykk = findHighest(resultater, "rykk"); 
-        Ovelse besteStot = findHighest(resultater, "stot"); 
-
-        Collection<Ovelse> onlyTrekamp = filtrerKunTrekamp(resultater);
-
-        Collection<Ovelse> onlyBeste = new ArrayList<>();
-
-        onlyBeste.add(besteRykk);
-        onlyBeste.add(besteStot);
-        onlyBeste.addAll(onlyTrekamp);
-
-        return onlyBeste;
-    }
-
-    private static Collection<Ovelse> filterNavnContains(Collection<Ovelse> resultater, String navn) {
-        return resultater.stream()
-            .filter(ovelse -> ovelse.getNavn().contains("rykk"))
-            .collect(Collectors.toList());
-
-    }
-
-    private static Collection<Ovelse> filtrerKunTrekamp(Collection<Ovelse> resultater) {
-        return resultater.stream()
-        .filter(ovelse -> !ovelse.getNavn().contains("rykk") || !ovelse.getNavn().contains("stot"))
-        .collect(Collectors.toList());
-
-    }
-
-    private static Ovelse findHighest(Collection<Ovelse> resultater, String navn) {
-        Collection<Ovelse> alleSomInneholderNavn = filterNavnContains(resultater, navn);
-        Optional<Ovelse> besteForsok = alleSomInneholderNavn.stream()
-            .sorted(Comparator.comparingDouble(Ovelse::getResultat).reversed())
-            .findFirst();
-
-        if (besteForsok.isPresent())
-            return besteForsok.get();
-
-        throw new IllegalStateException("resultater innholder ingen: " + navn);
-    }
 
 
     public static double calculatePoints(Ovelse ovelse, char kjonn, double kroppsvekt) {
-        String ovelseNavn = ovelse.getNavnUtenForsok();
-        double resultat = ovelse.getResultat();
+        String ovelseNavn = ovelse.getNavn();
+        double resultat = ovelse.getBesteResultat();
 
         switch (ovelseNavn) {
 
-            case "trehopp":
+            case "treHopp":
                 return calculateTreHoppScore(resultat);
 
             case "kuleKast":
@@ -83,12 +43,23 @@ public class Poengberegning {
             
             case "rykk":
             case "stot":
-                return round(calculateSinclaire(kjonn, kroppsvekt, (int) resultat)*1.2, 2);
+                return calculateLofteScore(kjonn, kroppsvekt, (int) resultat);
 
             default:
                 throw new IllegalArgumentException("Invalid ovelse: " + ovelse);
         }
     }
+
+    // TODO lag dette ferdi:
+    // public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
+
+    //     double scoreForOvelse = calculatePoints(ovelse, lifter.getKjonn(), lifter.getKroppsvekt());
+    //     double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
+    //     double scoreAaOppnaa = lederScore-lofterSinScoreUtenSisteOvelse; // bør rundes av?
+
+    //     double 
+
+    // }
 
     private static double calculateTreHoppScore(double lengde) {
         double score = lengde*20;
@@ -115,22 +86,20 @@ public class Poengberegning {
             finalScore = 0;
         }
 
-        boolean impossibleTime = time <= TIME_DELTA;
-        if (impossibleTime) {
+        boolean nullTidEllerNegativ = time <= TIME_DELTA;
+        if (nullTidEllerNegativ) {
             finalScore = 0;
         }
         
         return finalScore;
     }
     
-    private static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
 
-        long factor = (long) Math.pow(10, places);
-        value = value * factor;
-        long tmp = Math.round(value);
+    private static double calculateLofteScore(char kjonn, double kroppsvekt, int weight) {
+        double sinclaire = calculateSinclaire(kjonn, kroppsvekt, weight);
+        double femKampLofteScore = sinclaire*1.2;
 
-        return (double) tmp / factor;
+        return round(femKampLofteScore, 2);
     }
 
 
@@ -162,5 +131,14 @@ public class Poengberegning {
 
     }
 
+    private static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+
+        return (double) tmp / factor;
+    }
     
 }

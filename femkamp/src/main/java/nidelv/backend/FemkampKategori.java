@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Comparator;
 
 import nidelv.backend.Resultat.Lifter;
+import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
 public class FemkampKategori {
 
@@ -25,7 +26,8 @@ public class FemkampKategori {
             this.name = loftersFemkampkategori;
             
         else if (!name.equals(loftersFemkampkategori))
-            throw new IllegalFemkampNavnException(lifter.getNavn() + " har en annen kategori enn tidligere loftere, som har: " + this.name);
+            //throw new IllegalFemkampNavnException(lifter.getNavn() + " har en annen kategori enn tidligere loftere, som har: " + this.name);
+            throw new IllegalLifterDataException(lifter.getNavn() + " har en annen kategori enn tidligere loftere, som har: " + this.name);
 
         lifters.add(lifter);
     }

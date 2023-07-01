@@ -16,6 +16,8 @@ public class Pulje {
     private Comparator<Lifter> comparator;
     private com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get response;
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
+    private String currentOvelse; // Legg til for å regne ut hva må ta for å gå forbi
+    private List<Object> errorMeldinger;
 
 
     public Pulje(final String puljeName, com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get get) {
@@ -26,7 +28,9 @@ public class Pulje {
 
 
     public void createLifters() throws IOException{
-        if (femkampKategoris.size()>0) throw new IllegalStateException("already created some lifters!");
+        this.errorMeldinger = new ArrayList<>();
+
+        femkampKategoris.clear();
 
         femkampKategoris.add(new FemkampKategori());
 
@@ -39,15 +43,17 @@ public class Pulje {
                 femkampKategoris.add(new FemkampKategori());
             }
             else {
+                // dra ut try catch, er ugly slik
                 try {
-                femkampKategoris.get(femkampKategoris.size()-1).addLifter(new Lifter(puljeName, lifterid, values.get(i)));
-                lifterid++;
+                    femkampKategoris.get(femkampKategoris.size()-1).addLifter(new Lifter(puljeName, lifterid, values.get(i)));
+                    lifterid++;
                 }
                 catch (IllegalLifterDataException e) {
-                    handleUserInputExceptions(e);
+                    errorMeldinger.add(e.getMessage());
                 }
             }
         }
+        writeErrorMeldingerTilGoogleSheet();
         this.femkampKategoris = new ArrayList<>(femkampKategoris.stream().filter(femkampkat -> femkampkat.numberOfLifters()>0).collect(Collectors.toList()));
         sortLifters();
     }
@@ -82,13 +88,11 @@ public class Pulje {
             if (lifter.isPresent())   
 
                 try {    
-                    lifter.get().setSheetLine(values.get(i));
-                    lifter.get().updateLifter();
+                    lifter.get().updateLifter(values.get(i));
                 } catch (IllegalLifterDataException e) {
-
-                    handleUserInputExceptions(e);
+                    writeErrorMeldingerTilGoogleSheet();
                 }
-                // denne må håndteres med at løftere sletts og create kjøres på nytt
+                // denne må håndteres med at løftere sletts og create kjøres på nytt i ManageData
             else
                 throw new IllegalNumberOfLiftersException("can't find the missing lifter!"); 
         }
@@ -96,10 +100,16 @@ public class Pulje {
     }
 
     // denne skal skrive meldingen til google sheet
-    public void handleUserInputExceptions(Exception e) {
-        System.out.println(e.getMessage());
+    public void writeErrorMeldingerTilGoogleSheet() throws IOException {
+        String celleAaStarteAaSkrive = "A"+String.valueOf(Settings.antallRaderSomLeses+1);
 
+        for (int i=0 ; i<10 ; i++) {
+            errorMeldinger.add("");
+        }
+
+        GoogleDockReaderAndWriter.writeLinesToInputSheet(puljeName, celleAaStarteAaSkrive, errorMeldinger);
     }
+
 
     public Collection<Lifter> getAllLiftersInPulje() {
         Collection<Lifter> lifters = new ArrayList<>();
