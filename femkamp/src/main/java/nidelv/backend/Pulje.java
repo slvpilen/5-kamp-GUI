@@ -53,7 +53,7 @@ public class Pulje {
                 }
             }
         }
-        writeErrorMeldingerTilGoogleSheet();
+        appendErrorMeldingerTilGoogleSheet();
         this.femkampKategoris = new ArrayList<>(femkampKategoris.stream().filter(femkampkat -> femkampkat.numberOfLifters()>0).collect(Collectors.toList()));
         sortLifters();
     }
@@ -90,7 +90,7 @@ public class Pulje {
                 try {    
                     lifter.get().updateLifter(values.get(i));
                 } catch (IllegalLifterDataException e) {
-                    writeErrorMeldingerTilGoogleSheet();
+                    appendErrorMeldingerTilGoogleSheet();
                 }
                 // denne må håndteres med at løftere sletts og create kjøres på nytt i ManageData
             else
@@ -100,14 +100,14 @@ public class Pulje {
     }
 
     // denne skal skrive meldingen til google sheet
-    public void writeErrorMeldingerTilGoogleSheet() throws IOException {
+    public void appendErrorMeldingerTilGoogleSheet() throws IOException {
         String celleAaStarteAaSkrive = "A"+String.valueOf(Settings.antallRaderSomLeses+1);
 
         for (int i=0 ; i<10 ; i++) {
             errorMeldinger.add("");
         }
 
-        GoogleDockReaderAndWriter.writeLinesToInputSheet(puljeName, celleAaStarteAaSkrive, errorMeldinger);
+        GoogleDockReaderAndWriter.addInputSheetData(puljeName, celleAaStarteAaSkrive, errorMeldinger);
     }
 
 

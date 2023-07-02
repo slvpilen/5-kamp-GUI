@@ -46,11 +46,19 @@ public class App {
             List<List<Object>> lofterLines = new ArrayList<>();
             lofterLines.add(new ArrayList<Object>(Settings.rekkefolgeKolonnerOutput));
 
-
             // legger til det som skal skrives
+            // TODO lag en get linesToWrite i pulje (som tar hensin til forskjellige katogorier...)
             pulje.getAllLiftersInPulje().forEach(lofter -> lofterLines.add(lofter.getOutput()));
+
+            // legger til output data til readonly filen før skriving
+            GoogleDockReaderAndWriter.addOutputSheetData("pulje1", lofterLines);
+            
             // skriver til sheet
-            GoogleDockReaderAndWriter.writeListToOutputSheet("pulje1", lofterLines);
+            GoogleDockReaderAndWriter.writeAllToFiles();
+            
+            // deleting outputData
+            GoogleDockReaderAndWriter.deletInputSheetData();
+            GoogleDockReaderAndWriter.deletOutoutSheetData();
 
             takeBreak(5);
 

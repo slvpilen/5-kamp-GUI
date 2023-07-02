@@ -11,6 +11,8 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
@@ -22,7 +24,9 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -35,6 +39,9 @@ public class GoogleDockReaderAndWriter {
     private static String APPLICATION_NAME = "Google Sheets Example";
     private static String SPREADSHEET_ID_PLOTTING;// = "1sEkojzoIyxrt8ZI3536483bmjP4rwtxyUFWSxdTU7is";
     private static String SPREADSHEET_ID_READING;
+
+    private static List<ValueRange> inPutSheetsData  = new ArrayList<>();
+    private static List<ValueRange> outPutSheetsData  = new ArrayList<>();
 
     public static void setSpreadsheetIDAndSheetService() throws IOException, GeneralSecurityException {
         SPREADSHEET_ID_PLOTTING = extractSpreadsheetId(Settings.googleDockURL_plotting);
@@ -104,56 +111,97 @@ public class GoogleDockReaderAndWriter {
        
     }
 
-    public static void writeLinesToInputSheet(String sheetName, String cellStartPlotting, List<Object> errorMeldinger) throws IOException {
-        writeLinesToSheet(SPREADSHEET_ID_PLOTTING, sheetName ,cellStartPlotting, errorMeldinger);
+    public static void deletInputSheetData() {
+        inPutSheetsData.clear();
     }
 
-    public static void writeLinesToOutputSheet(String sheetName, String cellStartPlotting, List<Object> dataToWrite) throws IOException {
-        writeLinesToSheet(SPREADSHEET_ID_READING, sheetName ,cellStartPlotting, dataToWrite);
+    public static void deletOutoutSheetData() {
+        outPutSheetsData.clear();
     }
 
-    private static void writeLinesToSheet(String spreadshetID, String sheetName, String cellStartPlotting, List<Object> dataToWrite) throws IOException {
-        ValueRange body = createValueRange(dataToWrite);
+    public static void addInputSheetData(String sheetName, String cellStartPlotting, List<Object> errorMeldinger) throws IOException {
+        StandarizeAndAddValueRangeToSheetData(inPutSheetsData, sheetName ,cellStartPlotting, errorMeldinger);
+    }
 
+    public static void addOutputSheetData(String sheetName, List<List<Object>> dataToWrite) throws IOException {
+        String cellStartPlotting = "A1";
+        addValueRangeToSheetData(outPutSheetsData, sheetName ,cellStartPlotting, dataToWrite);
+    }
+
+    private static void StandarizeAndAddValueRangeToSheetData(List<ValueRange> sheetData, String sheetName, String cellStartPlotting, List<Object> dataToWrite) throws IOException {
+        List<List<Object>> rows = dataToWrite.stream()
+                                    .map(data -> Collections.singletonList(data)) // brug et lambda-udtryk her
+                                    .collect(Collectors.toList());
+
+        addValueRangeToSheetData(sheetData, sheetName, cellStartPlotting, rows);
+    }
+
+    private static void addValueRangeToSheetData(List<ValueRange> sheetData, String sheetName, String cellStartPlotting, List<List<Object>> dataToWrite) throws IOException {
         String range = sheetName + "!" + cellStartPlotting;
+        sheetData.add(new ValueRange()
+            .setRange(range)
+            .setValues(dataToWrite));
+    }
 
-        sheetsService.spreadsheets().values()
-            .update(spreadshetID, range, body)
+    public static void writeAllToFiles() {
+        Map<String, List<ValueRange>> filesToWrite = new HashMap<>();
+
+        // kunne lagra dem som map fra start av
+        filesToWrite.put(SPREADSHEET_ID_PLOTTING, inPutSheetsData);
+        filesToWrite.put(SPREADSHEET_ID_READING, outPutSheetsData);
+
+        filesToWrite.forEach((key, value) -> {
+            try {
+                writeToFile(value, key);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private static void writeToFile(List<ValueRange> data, String spreadsheetId) throws IOException {
+        BatchUpdateValuesRequest batchBody = new BatchUpdateValuesRequest()
             .setValueInputOption("RAW")
-            .execute();
-    }
-
-    private static ValueRange createValueRange(List<Object> data) {
-        List<List<Object>> rows = new ArrayList<>();
-
-        for (Object str : data) {
-            List<Object> row = Collections.singletonList((Object) str);
-            rows.add(row);
-        }
-
-        return createValueRange2(rows);
-    }
-    private static ValueRange createValueRange2(List<List<Object>> dataToWrite) {
-        return new ValueRange().setValues(dataToWrite);
-    }
-
-    public static void writeListToOutputSheet(String sheetName, List<List<Object>> dataToWrite) throws IOException {
-        writeListToSheet(SPREADSHEET_ID_READING, sheetName, dataToWrite);
-    }
-
-
-
-    private static void writeListToSheet(String spreadshetID, String sheetName,
-            List<List<Object>> dataToWrite) throws IOException {
-
-        ValueRange body = createValueRange2(dataToWrite); 
-        String range = sheetName + "!" + "A1";
+            .setData(data);
 
         sheetsService.spreadsheets().values()
-            .update(spreadshetID, range, body).
-            setValueInputOption("RAW")
+            .batchUpdate(spreadsheetId, batchBody)
             .execute();
     }
+
+
+    // private static ValueRange createValueRange(List<Object> data) {
+    //     List<List<Object>> rows = new ArrayList<>();
+
+    //     for (Object str : data) {
+    //         List<Object> row = Collections.singletonList((Object) str);
+    //         rows.add(row);
+    //     }
+
+    //     return createValueRange2(rows);
+    // }
+    // private static ValueRange createValueRange2(List<List<Object>> dataToWrite) {
+    //     return new ValueRange().setValues(dataToWrite);
+    // }
+
+    // public static void writeListToOutputSheet(String sheetName, List<List<Object>> dataToWrite) throws IOException {
+    //     writeListToSheet(SPREADSHEET_ID_READING, sheetName, dataToWrite);
+    // }
+
+
+
+    // private static void writeListToSheet(String spreadshetID, String sheetName,
+    //         List<List<Object>> dataToWrite) throws IOException {
+
+    //     ValueRange body = createValueRange2(dataToWrite); 
+    //     String range = sheetName + "!" + "A1";
+
+    //     sheetsService.spreadsheets().values()
+    //         .update(spreadshetID, range, body).
+    //         setValueInputOption("RAW")
+    //         .execute();
+    // }
 
 
        
