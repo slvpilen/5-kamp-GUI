@@ -169,42 +169,7 @@ public class GoogleDockReaderAndWriter {
             .batchUpdate(spreadsheetId, batchBody)
             .execute();
     }
-
-
-    // private static ValueRange createValueRange(List<Object> data) {
-    //     List<List<Object>> rows = new ArrayList<>();
-
-    //     for (Object str : data) {
-    //         List<Object> row = Collections.singletonList((Object) str);
-    //         rows.add(row);
-    //     }
-
-    //     return createValueRange2(rows);
-    // }
-    // private static ValueRange createValueRange2(List<List<Object>> dataToWrite) {
-    //     return new ValueRange().setValues(dataToWrite);
-    // }
-
-    // public static void writeListToOutputSheet(String sheetName, List<List<Object>> dataToWrite) throws IOException {
-    //     writeListToSheet(SPREADSHEET_ID_READING, sheetName, dataToWrite);
-    // }
-
-
-
-    // private static void writeListToSheet(String spreadshetID, String sheetName,
-    //         List<List<Object>> dataToWrite) throws IOException {
-
-    //     ValueRange body = createValueRange2(dataToWrite); 
-    //     String range = sheetName + "!" + "A1";
-
-    //     sheetsService.spreadsheets().values()
-    //         .update(spreadshetID, range, body).
-    //         setValueInputOption("RAW")
-    //         .execute();
-    // }
-
-
-       
+     
     
     
 

@@ -52,13 +52,15 @@ public class App {
 
             // legger til output data til readonly filen før skriving
             GoogleDockReaderAndWriter.addOutputSheetData("pulje1", lofterLines);
-            
+
+
             // skriver til sheet
             GoogleDockReaderAndWriter.writeAllToFiles();
             
             // deleting outputData
             GoogleDockReaderAndWriter.deletInputSheetData();
             GoogleDockReaderAndWriter.deletOutoutSheetData();
+            
 
             takeBreak(5);
 

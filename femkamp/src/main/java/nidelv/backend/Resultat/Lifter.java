@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import nidelv.backend.FemkampKategori;
 import nidelv.backend.Settings;
 
 
@@ -12,12 +13,15 @@ public class Lifter {
 
     private final String pulje;
     private final int linjeId;
-    private String vektklasse, navn, kategori, femkampkategori, lag, fodselsdato, klubb;
+    private String vektklasse, navn, kategori, femkampkategoriNavn, lag, fodselsdato, klubb;
     private double kroppsvekt;
     private char kjonn;
     private Collection<Ovelse> ovelser = new ArrayList<>();
     private List<Object> sheetLine;
     private double poeng;
+    private FemkampKategori femkampKategori;
+
+    private String errorMessage;
 
     private String currentOvelse; // oppdateres fra pulje (ikke laget ennå)
     private double nodvendigForAaTaLedelsen;
@@ -34,31 +38,25 @@ public class Lifter {
 
         createOvelser();
         updatePoeng();
-
     }
-
-    public void updateLifter(List<Object> sheetLine) {
-        standarizeSheetLine(sheetLine);
-        updateLifterAttributesFromSheetLine(sheetLine); 
-        updateOvelserOgPoeng();
-    }
-
 
     private void standarizeSheetLine(List<Object> sheetLine) {
         int antallKolonner = Settings.rekkefolgeKolonnerInput.size();
 
         while(sheetLine.size()<antallKolonner)
             sheetLine.add(null);
-
     }
-
 
     // finn bedre navn for denne metoden
     private void updateLifterAttributesFromSheetLine(List<Object> sheetLine) {
-
-        //validateLofterInfo(sheetLine);
+        nullstillErrormelding();
 
         String lofterNavn = ValidateAndExtractNavn(sheetLine);
+
+        // validating femkampkategori
+        if (femkampKategori!= null && !this.femkampkategoriNavn.equals(femkampKategori.getName()))
+            addErrorMessage("Feil femkampkategori for: " + lofterNavn);
+
         double kroppsvekt = validateAndExctactKroppsvekt(lofterNavn, sheetLine);
         String kategori = validateAndExtractKategori(lofterNavn, sheetLine);
 
@@ -68,7 +66,7 @@ public class Lifter {
         this.kroppsvekt = kroppsvekt;
         this.kategori = kategori;
         this.kjonn = this.kategori.charAt(1);
-        this.femkampkategori = convertToString(hentLofterInfo("femkampkategori"));
+        this.femkampkategoriNavn = convertToString(hentLofterInfo("femkampkategori"));
         this.fodselsdato = convertToString(hentLofterInfo("fodselsdato"));
         this.navn = lofterNavn;
         this.lag = convertToString(hentLofterInfo("lag"));
@@ -76,7 +74,17 @@ public class Lifter {
 
     }
 
+    public void updateLifter(List<Object> sheetLine) {
+        nullstillErrormelding();
+        standarizeSheetLine(sheetLine);
+        updateLifterAttributesFromSheetLine(sheetLine); 
+        updateOvelserOgPoeng();
+    }
 
+
+    private void nullstillErrormelding() {
+        this.errorMessage = null;
+    }
 
 
 
@@ -92,7 +100,7 @@ public class Lifter {
         boolean tomtNavn = navn.equals("");
 
         if (tomtNavn)
-            throw new IllegalLifterDataException("En lofter mangler navn!");
+            addErrorMessage("En lofter mangler navn!");
     }
 
 
@@ -101,12 +109,13 @@ public class Lifter {
         Object kroppsvekt = hentLofterInfo("kroppsvekt", sheetLine);
 
         if (kroppsvekt == null) 
-            throw new IllegalLifterDataException("Mangler kroppsvekt for lofter med navn: "+ lofterNavn);
+            addErrorMessage("Mangler kroppsvekt for lofter med navn: "+ lofterNavn);
         
         try {
-            return Ovelse.convertObjToDouble(kroppsvekt);
+            return Ovelse.convertObjToDouble(kroppsvekt, this);
         } catch (NumberFormatException e) {
-            throw new IllegalLifterDataException("kroppsvekt: " + kroppsvekt +  " for lofter med navn " + lofterNavn + " er ikke riktig format");
+            addErrorMessage("kroppsvekt: " + kroppsvekt +  " for lofter med navn " + lofterNavn + " er ikke riktig format");
+            return 0;
         }
     }
 
@@ -115,12 +124,12 @@ public class Lifter {
         Object kategori = hentLofterInfo("kategori", sheetLine);
 
         if (kategori == null)
-            throw new IllegalLifterDataException("Mangler kategori for lofter med navn: "+ lofterNavn);  
+            addErrorMessage("Mangler kategori for lofter med navn: "+ lofterNavn);  
 
         String kategoriStreng = convertToString(kategori);   
 
         if (kategoriStreng.length() != 2)
-            throw new IllegalLifterDataException("Feil lengde på kategori for lofter med navn: " + lofterNavn);  
+            addErrorMessage("Feil lengde på kategori for lofter med navn: " + lofterNavn);  
             
         validateKjonn(lofterNavn, kategoriStreng);
 
@@ -131,8 +140,13 @@ public class Lifter {
         boolean gyldigKjonn = Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
 
         if (!gyldigKjonn)
-            throw new IllegalLifterDataException("kategori til lofter: "+ lofterNavn + " er ugyldig, slutter ikke på M eller K");  
+            addErrorMessage("kategori til lofter: "+ lofterNavn + " er ugyldig, slutter ikke på M eller K");  
 
+    }
+
+    public void addErrorMessage(String errorMessage) {
+        if (this.errorMessage == null)
+            this.errorMessage=errorMessage;
     }
 
     private String convertToString(Object obj) {
@@ -153,7 +167,7 @@ public class Lifter {
 
         for (String ovelseNavn : Ovelse.validOvelser) {
             List<Object> alleForsok = finnAlleForsok(ovelseNavn);
-            ovelser.add(new Ovelse(ovelseNavn, alleForsok));
+            ovelser.add(new Ovelse(ovelseNavn, alleForsok, this));
         }
 
         updatePoeng();
@@ -203,7 +217,7 @@ public class Lifter {
 
 
     private void updateOvelse(String navn, List<Object> alleForsok){
-        ovelser.stream().filter(ovelse-> ovelse.getNavn().equals(navn)).findFirst().get().updateBesteResultatOgAlleForsok(alleForsok);
+        ovelser.stream().filter(ovelse-> ovelse.getNavn().equals(navn)).findFirst().get().updateBesteResultatOgAlleForsok(alleForsok, this);
     }
 
 
@@ -259,13 +273,18 @@ public class Lifter {
         this.kategori = kategori;
     }
 
-    public String getfemkampkategori() {
-        return this.femkampkategori;
+    public String getfemkampkategoriNavn() {
+        return this.femkampkategoriNavn;
     }
 
-    public void setfemkampkategori(String femkampkategori) {
-        this.femkampkategori = femkampkategori;
+    public void setfemkampkategoriNavn(String femkampkategoriNavn) {
+        this.femkampkategoriNavn = femkampkategoriNavn;
     }
+
+    public void setFemkampkategori(FemkampKategori femkampkategori) {
+        this.femkampKategori = femkampkategori;
+    }
+
     public String getNavn() {
         return this.navn;
     }
@@ -286,6 +305,10 @@ public class Lifter {
         return this.kroppsvekt;
     }
 
+    public String getErrorMessage() {
+        return this.errorMessage;
+    }
+
 
     @Override
     public String toString() {
@@ -295,11 +318,11 @@ public class Lifter {
     }
 
 
-    public static class IllegalLifterDataException extends IllegalArgumentException {
-        public IllegalLifterDataException(String message) {
-            super(message);
-        }
-    }
+    // public static class IllegalLifterDataException extends IllegalArgumentException {
+    //     public IllegalLifterDataException(String message) {
+    //         super(message);
+    //     }
+    // }
 
     
 }

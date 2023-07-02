@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import nidelv.backend.Resultat.Lifter;
-import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
+//import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
 public class Pulje {
 
@@ -23,7 +23,6 @@ public class Pulje {
     public Pulje(final String puljeName, com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get get) {
         this.puljeName = puljeName;
         this.response = get;        
-        
     }
 
 
@@ -43,19 +42,18 @@ public class Pulje {
                 femkampKategoris.add(new FemkampKategori());
             }
             else {
-                // dra ut try catch, er ugly slik
-                try {
-                    femkampKategoris.get(femkampKategoris.size()-1).addLifter(new Lifter(puljeName, lifterid, values.get(i)));
-                    lifterid++;
-                }
-                catch (IllegalLifterDataException e) {
-                    errorMeldinger.add(e.getMessage());
-                }
+                Lifter newLifter = new Lifter(puljeName, lifterid, values.get(i));
+                femkampKategoris.get(femkampKategoris.size()-1).addLifter(newLifter);
+
+                String errorMessage = newLifter.getErrorMessage();
+                this.errorMeldinger.add(errorMessage);
+
+                lifterid++;
             }
         }
-        appendErrorMeldingerTilGoogleSheet();
         this.femkampKategoris = new ArrayList<>(femkampKategoris.stream().filter(femkampkat -> femkampkat.numberOfLifters()>0).collect(Collectors.toList()));
         sortLifters();
+        appendErrorMeldingerTilGoogleSheet();
     }
 
     private void sortLifters() {
@@ -74,33 +72,64 @@ public class Pulje {
     }
 
     public void updateResults() throws IOException {
+        this.errorMeldinger.clear();
+
         List<List<Object>> values = response.execute().getValues();;
         values = values.stream().filter(line -> line.size()>0).collect(Collectors.toList());
         int numberOfLiftersInPulje = femkampKategoris.stream().mapToInt(femkampKat -> femkampKat.numberOfLifters()).sum();
         if (values.size() != numberOfLiftersInPulje)
             throw new IllegalNumberOfLiftersException("feil antall løftere i dock og i programmet"); 
 
-        Collection<Lifter> lifters = getAllLiftersInPulje();
+        updateAndvaluateNumbersOfLifters(values);
 
-        for (int i = 0; i < values.size(); i++) {
-            int i2 = i;
-            Optional<Lifter> lifter = lifters.stream().filter(l -> l.getId()==i2).findFirst();  
-            if (lifter.isPresent())   
-
-                try {    
-                    lifter.get().updateLifter(values.get(i));
-                } catch (IllegalLifterDataException e) {
-                    appendErrorMeldingerTilGoogleSheet();
-                }
-                // denne må håndteres med at løftere sletts og create kjøres på nytt i ManageData
-            else
-                throw new IllegalNumberOfLiftersException("can't find the missing lifter!"); 
-        }
-        sortLifters();                
+        sortLifters();  
+        appendErrorMeldingerTilGoogleSheet();         
     }
 
+
+    private void updateAndvaluateNumbersOfLifters(List<List<Object>> values) {
+
+        int currentFemkampKategoriIndex = 0;
+        FemkampKategori currentFemkampKategori = femkampKategoris.get(0);
+        Collection<Lifter> lifters = currentFemkampKategori.getLifters();
+
+        int index = 0;
+
+        for (List<Object> line : values) {
+            index++;
+
+            boolean harInnehold = line.size()>0;
+
+            if (harInnehold) {
+                int index2 = index;
+                Optional<Lifter> lifter = lifters.stream().filter(l -> l.getId()==index2).findFirst();
+                if (lifter.isPresent())   {
+                    Lifter lifterToUpdate =  lifter.get();
+                    lifterToUpdate.updateLifter(line);
+                    lifter.get().updateLifter(line);
+
+                    String errorMessage = lifterToUpdate.getErrorMessage();
+                    errorMeldinger.add(errorMessage);
+                }    
+                else
+                    throw new IllegalNumberOfLiftersException("can't find the missing lifter!"); 
+            }
+
+            else {
+                currentFemkampKategoriIndex++;
+                currentFemkampKategori = femkampKategoris.get(currentFemkampKategoriIndex);
+                lifters = currentFemkampKategori.getLifters();
+            }
+            
+
+        }
+
+    }
+
+
+
     // denne skal skrive meldingen til google sheet
-    public void appendErrorMeldingerTilGoogleSheet() throws IOException {
+    private void appendErrorMeldingerTilGoogleSheet() throws IOException {
         String celleAaStarteAaSkrive = "A"+String.valueOf(Settings.antallRaderSomLeses+1);
 
         for (int i=0 ; i<10 ; i++) {

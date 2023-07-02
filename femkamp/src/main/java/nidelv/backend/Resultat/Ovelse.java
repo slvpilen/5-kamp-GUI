@@ -5,25 +5,28 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
+//import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
 public class Ovelse {
     public static final Collection<String> validOvelser = Arrays.asList("rykk", "stot", "treHopp", "kuleKast", "40Sprint");
 
     protected final String navn;
+    private Lifter lifter;
 
     // kun løft bruker alle forsøk (ikke 3-kamp øvelsene)
     private int forsok1;
     private int forsok2;
     private int forsok3;
 
+
     protected double besteResultat;
 
-    public Ovelse(String navn, List<Object> forsok) {
+    public Ovelse(String navn, List<Object> forsok, Lifter lifter) {
+        this.lifter = lifter;
         validateInput(navn, forsok);
 
         this.navn = navn;
-        updateBesteResultatOgAlleForsok(forsok);
+        updateBesteResultatOgAlleForsok(forsok, lifter);
     }
     
     protected void validateInput(String navn, List<Object> forsok) {
@@ -54,10 +57,10 @@ public class Ovelse {
             return;
 
         try{
-            forsok.forEach(f -> convertObjToInt(f));
+            forsok.forEach(f -> convertObjToInt(f, lifter));
 
         } catch (NumberFormatException e) {
-            throw new IllegalLifterDataException("loft: " + forsok +  " er ikke riktig format");
+            lifter.addErrorMessage("loft: " + forsok +  " er ikke riktig format");
         }        
     } 
 
@@ -80,10 +83,10 @@ public class Ovelse {
             return;
 
         try {
-            trekampForsok.forEach(f -> convertObjToDouble(f));
+            trekampForsok.forEach(f -> convertObjToDouble(f, lifter));
 
         } catch (NumberFormatException e) {
-            throw new IllegalLifterDataException("trekampresultat: " + trekampForsok + " er ikke riktig format");
+            lifter.addErrorMessage("trekampresultat: " + trekampForsok + " er ikke riktig format");
         }
         
     }
@@ -106,10 +109,11 @@ public class Ovelse {
         boolean forMangeDesimaler = numberOfDecimals > 1; 
 
         if (forMangeDesimaler)
-            throw new IllegalLifterDataException("40 meter skal rundes opp til 1/10! " + sprint40 + " opfylller ikke dette!");       
+            lifter.addErrorMessage("40 meter skal rundes opp til 1/10! " + sprint40 + " opfylller ikke dette!");       
     }
 
-    public void updateBesteResultatOgAlleForsok(List<Object> forsok) {
+    public void updateBesteResultatOgAlleForsok(List<Object> forsok, Lifter lifter) {
+        this.lifter = lifter;
         validateInput(navn, forsok);
 
         boolean isLoft = navn.equals("rykk") || navn.equals("stot");
@@ -118,16 +122,16 @@ public class Ovelse {
         boolean isSprint40 = navn.equals("40Sprint");
 
         if (isLoft) {
-            forsok1 = convertObjToInt(forsok.get(0));
-            forsok2 = convertObjToInt(forsok.get(1));
-            forsok3 = convertObjToInt(forsok.get(2));
+            forsok1 = convertObjToInt(forsok.get(0), lifter);
+            forsok2 = convertObjToInt(forsok.get(1), lifter);
+            forsok3 = convertObjToInt(forsok.get(2), lifter);
             updateBesteResultatForLift();
         }
             
         else if (istreHopp || 
             iskuleKast ||
             isSprint40)
-            this.besteResultat = Ovelse.convertObjToDouble(forsok.get(0));
+            this.besteResultat = convertObjToDouble(forsok.get(0), lifter);
     }
 
     private void updateBesteResultatForLift() {
@@ -160,7 +164,7 @@ public class Ovelse {
         return decimalPlaces;
     }
 
-    public static double convertObjToDouble(Object obj) {
+    public static double convertObjToDouble(Object obj, Lifter lifter) {
         if (obj == null) 
             return 0.0;
             
@@ -168,7 +172,8 @@ public class Ovelse {
             try {
                 return Double.valueOf((String) obj);
             } catch (NumberFormatException e) {
-                throw new NumberFormatException(obj + " kan ikke konverteres til et flyttall");
+                lifter.addErrorMessage(obj + " kan ikke konverteres til et flyttall");
+                return 0;
             }
 
         } else {
@@ -176,7 +181,7 @@ public class Ovelse {
         }
     }
 
-    public static int convertObjToInt(Object obj) {
+    public static int convertObjToInt(Object obj, Lifter lifter) {
         if (obj == null)
             return 0;
 
@@ -184,7 +189,8 @@ public class Ovelse {
             try {
                 return Integer.valueOf((String) obj);
             } catch (NumberFormatException e) {
-                throw new NumberFormatException(obj + " kan ikke konverteres til et heltall");
+                lifter.addErrorMessage(obj + " kan ikke konverteres til et heltall");
+                return 0;
             }
 
         } else {
