@@ -132,6 +132,8 @@ public class Pulje {
     private void appendErrorMeldingerTilGoogleSheet() throws IOException {
         String celleAaStarteAaSkrive = "A"+String.valueOf(Settings.antallRaderSomLeses+1);
 
+        errorMeldinger.removeIf(melding -> melding == null || melding.equals(""));
+        
         for (int i=0 ; i<10 ; i++) {
             errorMeldinger.add("");
         }

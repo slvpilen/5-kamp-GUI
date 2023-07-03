@@ -1,9 +1,9 @@
 package nidelv.backend.Resultat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 
 //import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
 
@@ -49,20 +49,27 @@ public class Ovelse {
     }
 
     private void validateLoft(List<Object> forsok) {
+
         boolean feilAntallForsok = forsok.size() != 3;
         if (feilAntallForsok)
             throw new IllegalArgumentException("Feil antall forsok");
 
         if (!anyForsok(forsok)) 
             return;
+        
+        boolean riktigForsokRekkefolge = riktigForsokRekkefolge(forsok);
+        if (!riktigForsokRekkefolge) {
+            lifter.addErrorMessage("1. loft før 2. løft og 2. før 3. løft");
+        }
+
 
         try{
             forsok.forEach(f -> convertObjToInt(f, lifter));
-
         } catch (NumberFormatException e) {
             lifter.addErrorMessage("loft: " + forsok +  " er ikke riktig format");
         }        
     } 
+
 
     private boolean anyForsok(List<Object> forsoks) {
         for (Object forsok : forsoks) {
@@ -70,6 +77,23 @@ public class Ovelse {
                 return true;
         }
         return false;
+    }
+
+    private boolean riktigForsokRekkefolge(List<Object> forsokene) {
+        boolean forrigeVarEtForsok = true;
+        for (Object forsok : forsokene) {
+            String forsokStreng = (String) forsok;
+            boolean etResultat = !forsokStreng.equals("");
+
+            if (!forrigeVarEtForsok && etResultat)
+                return false;
+
+            else if (etResultat)
+                forrigeVarEtForsok = true;
+            else
+                forrigeVarEtForsok = false;
+        }
+        return true;
     }
 
 

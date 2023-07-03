@@ -49,7 +49,7 @@ public class Lifter {
 
     // finn bedre navn for denne metoden
     private void updateLifterAttributesFromSheetLine(List<Object> sheetLine) {
-        nullstillErrormelding();
+        //nullstillErrormelding();
 
         String lofterNavn = ValidateAndExtractNavn(sheetLine);
 
@@ -109,12 +109,12 @@ public class Lifter {
         Object kroppsvekt = hentLofterInfo("kroppsvekt", sheetLine);
 
         if (kroppsvekt == null) 
-            addErrorMessage("Mangler kroppsvekt for lofter med navn: "+ lofterNavn);
+            addErrorMessage("Mangler kroppsvekt");
         
         try {
             return Ovelse.convertObjToDouble(kroppsvekt, this);
         } catch (NumberFormatException e) {
-            addErrorMessage("kroppsvekt: " + kroppsvekt +  " for lofter med navn " + lofterNavn + " er ikke riktig format");
+            addErrorMessage("kroppsvekt: " + kroppsvekt +  "er ikke riktig format");
             return 0;
         }
     }
@@ -124,12 +124,12 @@ public class Lifter {
         Object kategori = hentLofterInfo("kategori", sheetLine);
 
         if (kategori == null)
-            addErrorMessage("Mangler kategori for lofter med navn: "+ lofterNavn);  
+            addErrorMessage(" Mangler kategori for lofter ");  
 
         String kategoriStreng = convertToString(kategori);   
 
         if (kategoriStreng.length() != 2)
-            addErrorMessage("Feil lengde på kategori for lofter med navn: " + lofterNavn);  
+            addErrorMessage("Feil lengde på kategori");  
             
         validateKjonn(lofterNavn, kategoriStreng);
 
@@ -140,13 +140,13 @@ public class Lifter {
         boolean gyldigKjonn = Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
 
         if (!gyldigKjonn)
-            addErrorMessage("kategori til lofter: "+ lofterNavn + " er ugyldig, slutter ikke på M eller K");  
+            addErrorMessage(" er ugyldig, slutter ikke på M eller K");  
 
     }
 
     public void addErrorMessage(String errorMessage) {
         if (this.errorMessage == null)
-            this.errorMessage=errorMessage;
+            this.errorMessage = "navn: " + getNavn() + "; " + errorMessage;
     }
 
     private String convertToString(Object obj) {
@@ -317,12 +317,6 @@ public class Lifter {
             "} ";
     }
 
-
-    // public static class IllegalLifterDataException extends IllegalArgumentException {
-    //     public IllegalLifterDataException(String message) {
-    //         super(message);
-    //     }
-    // }
 
     
 }

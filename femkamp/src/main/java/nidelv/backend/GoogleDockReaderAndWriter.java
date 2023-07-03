@@ -122,15 +122,9 @@ public class GoogleDockReaderAndWriter {
     public static void addInputSheetData(String sheetName, String cellStartPlotting, List<Object> errorMeldinger) throws IOException {
         StandarizeAndAddValueRangeToSheetData(inPutSheetsData, sheetName ,cellStartPlotting, errorMeldinger);
     }
-
-    public static void addOutputSheetData(String sheetName, List<List<Object>> dataToWrite) throws IOException {
-        String cellStartPlotting = "A1";
-        addValueRangeToSheetData(outPutSheetsData, sheetName ,cellStartPlotting, dataToWrite);
-    }
-
     private static void StandarizeAndAddValueRangeToSheetData(List<ValueRange> sheetData, String sheetName, String cellStartPlotting, List<Object> dataToWrite) throws IOException {
         List<List<Object>> rows = dataToWrite.stream()
-                                    .map(data -> Collections.singletonList(data)) // brug et lambda-udtryk her
+                                    .map(data -> Collections.singletonList(data)) // bruk et lambda-uttrykk her
                                     .collect(Collectors.toList());
 
         addValueRangeToSheetData(sheetData, sheetName, cellStartPlotting, rows);
@@ -142,6 +136,13 @@ public class GoogleDockReaderAndWriter {
             .setRange(range)
             .setValues(dataToWrite));
     }
+
+
+    public static void addOutputSheetData(String sheetName, List<List<Object>> dataToWrite) throws IOException {
+        String cellStartPlotting = "A1";
+        addValueRangeToSheetData(outPutSheetsData, sheetName ,cellStartPlotting, dataToWrite);
+    }
+
 
     public static void writeAllToFiles() {
         Map<String, List<ValueRange>> filesToWrite = new HashMap<>();

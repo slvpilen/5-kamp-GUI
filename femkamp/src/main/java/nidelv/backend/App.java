@@ -24,7 +24,7 @@ public class App {
         // laster inn data og lager alt under panseret
         ManageData manageData = new ManageData();
 
-        // enkel poen Comparator for soertering av loftere
+        // enkel poeng Comparator for soertering av loftere
         Comparator<Lifter> poengComparator = new Comparator<Lifter>() {
             @Override
             public int compare(Lifter o1, Lifter o2) {
