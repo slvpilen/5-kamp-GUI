@@ -58,7 +58,7 @@ public class Pulje {
 
     private void sortLifters() {
         if (comparator != null)
-            femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLifters(this.comparator));
+            femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLiftersAndUpdateRank(this.comparator));
     }
 
     public String getName() {
@@ -133,7 +133,7 @@ public class Pulje {
         String celleAaStarteAaSkrive = "A"+String.valueOf(Settings.antallRaderSomLeses+1);
 
         errorMeldinger.removeIf(melding -> melding == null || melding.equals(""));
-        
+
         for (int i=0 ; i<10 ; i++) {
             errorMeldinger.add("");
         }
@@ -147,6 +147,11 @@ public class Pulje {
         femkampKategoris.forEach(femkampkat-> lifters.addAll(femkampkat.getLifters()));
         return lifters;
 
+    }
+
+    public List<FemkampKategori> getFemkampKategoris() {
+        // burde returnere ny liste for å hndre yttre påvirkning
+        return this.femkampKategoris;
     }
 
     

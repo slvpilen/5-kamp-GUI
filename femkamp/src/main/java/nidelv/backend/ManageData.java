@@ -14,7 +14,7 @@ import nidelv.backend.Resultat.Lifter;
 
 public class ManageData {
     
-    private static final String SPREAD_SHEET_ID = Settings.googleDockURL_plotting;
+    //private static final String SPREAD_SHEET_ID = Settings.googleDockURL_plotting;
     private Collection<Pulje> puljer = new ArrayList<>();
 
     public ManageData() throws IOException, GeneralSecurityException {
@@ -62,16 +62,19 @@ public class ManageData {
             try {
                 pulje.updateResults();
             } catch (IllegalNumberOfLiftersException e) {
-                try {
-                    pulje.createLifters();
-                } catch (IOException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
+                createLifters(pulje);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    private void createLifters(Pulje pulje) {
+        try{
+            pulje.createLifters();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
     }
 
 }

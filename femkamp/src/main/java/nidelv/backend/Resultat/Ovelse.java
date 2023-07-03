@@ -199,6 +199,7 @@ public class Ovelse {
                 lifter.addErrorMessage(obj + " kan ikke konverteres til et flyttall");
                 return 0;
             }
+            
 
         } else {
             throw new IllegalArgumentException("Objectet kan ikke konverteres");
@@ -213,8 +214,12 @@ public class Ovelse {
             try {
                 return Integer.valueOf((String) obj);
             } catch (NumberFormatException e) {
-                lifter.addErrorMessage(obj + " kan ikke konverteres til et heltall");
-                return 0;
+                try {
+                    return convertToNegative((String) obj);
+                } catch (NumberFormatException exception){
+                    lifter.addErrorMessage(obj + " kan ikke konverteres til et heltall");
+                    return 0;
+                }
             }
 
         } else {
@@ -222,6 +227,14 @@ public class Ovelse {
         }
     }
 
+
+    private static int convertToNegative(String objStreng) {
+        if (objStreng.length()<1)
+            throw new NumberFormatException("ikke et negativt tall!");
+
+        String utenMinusTegn = objStreng.substring(1, objStreng.length());
+        return -Integer.valueOf(utenMinusTegn);
+    }
 
     public String toString() {
         return "{ovelse: " + this.navn +  " resultat: " + besteResultat + "}";

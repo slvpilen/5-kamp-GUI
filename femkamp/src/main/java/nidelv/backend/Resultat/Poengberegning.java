@@ -108,6 +108,10 @@ public class Poengberegning {
         if (missingInfo)
             return 0;
 
+        boolean negativeWeight = weight<0;
+        if (negativeWeight)
+            return 0;
+
         double points = 0.0;
         double coefficient;
         double divisor;

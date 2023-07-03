@@ -19,6 +19,7 @@ public class Lifter {
     private Collection<Ovelse> ovelser = new ArrayList<>();
     private List<Object> sheetLine;
     private double poeng;
+    private int rank;
     private FemkampKategori femkampKategori;
 
     private String errorMessage;
@@ -52,6 +53,7 @@ public class Lifter {
         //nullstillErrormelding();
 
         String lofterNavn = ValidateAndExtractNavn(sheetLine);
+        this.navn = lofterNavn;
 
         // validating femkampkategori
         if (femkampKategori!= null && !this.femkampkategoriNavn.equals(femkampKategori.getName()))
@@ -65,10 +67,12 @@ public class Lifter {
         this.vektklasse = convertToString(hentLofterInfo("vektklasse"));
         this.kroppsvekt = kroppsvekt;
         this.kategori = kategori;
-        this.kjonn = this.kategori.charAt(1);
+
+        if (this.kategori.length() == 2)
+            this.kjonn = this.kategori.charAt(1);
+
         this.femkampkategoriNavn = convertToString(hentLofterInfo("femkampkategori"));
         this.fodselsdato = convertToString(hentLofterInfo("fodselsdato"));
-        this.navn = lofterNavn;
         this.lag = convertToString(hentLofterInfo("lag"));
         //this.klubb = convertToString(hentLofterInfo("klubb"));
 
@@ -108,7 +112,7 @@ public class Lifter {
 
         Object kroppsvekt = hentLofterInfo("kroppsvekt", sheetLine);
 
-        if (kroppsvekt == null) 
+        if (kroppsvekt == null || kroppsvekt.equals(("")))
             addErrorMessage("Mangler kroppsvekt");
         
         try {
@@ -137,7 +141,7 @@ public class Lifter {
     }
 
     private void validateKjonn(String lofterNavn, String kategoriStreng) {
-        boolean gyldigKjonn = Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
+        boolean gyldigKjonn = kategoriStreng.length() == 2 && Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
 
         if (!gyldigKjonn)
             addErrorMessage(" er ugyldig, slutter ikke på M eller K");  
@@ -226,6 +230,9 @@ public class Lifter {
         if (type.equals("poeng"))
              return poeng;
 
+        if (type.equals("rank"))
+            return rank;
+
         // samme for rank
         // samme for maa ha for å ta ledelsen     
         return hentLofterInfo(type, this.sheetLine);
@@ -283,6 +290,10 @@ public class Lifter {
 
     public void setFemkampkategori(FemkampKategori femkampkategori) {
         this.femkampKategori = femkampkategori;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
     }
 
     public String getNavn() {

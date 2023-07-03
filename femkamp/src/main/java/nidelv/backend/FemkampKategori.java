@@ -47,11 +47,16 @@ public class FemkampKategori {
         return lifters.size();
     }
 
-    public void sortLifters(Comparator<Lifter> comparator) {
+    public void sortLiftersAndUpdateRank(Comparator<Lifter> comparator) {
+        // TODO ved lik poeng, skal rangers etter startnummer?
         lifters.sort(comparator);
+        
+        for (int i=0 ; i<lifters.size() ; i++) {
+            lifters.get(i).setRank(i+1);
+        }
     }
 
-    public Collection<Lifter> getLifters() {
+    public ArrayList<Lifter> getLifters() {
         return new ArrayList<>(this.lifters);
     }
 

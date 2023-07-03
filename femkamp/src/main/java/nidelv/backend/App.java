@@ -3,6 +3,8 @@ package nidelv.backend;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class App {
         };
 
         // setter comparatoren til pulje 1
-        Pulje pulje = manageData.getPulje("pulje1");
-        pulje.setComparator(poengComparator);
+        Pulje pulje1 = manageData.getPulje("pulje1");
+        pulje1.setComparator(poengComparator);
 
         // denne kjøres gjennom hele stevnet
         int iterationNumber = 0;
@@ -48,7 +50,16 @@ public class App {
 
             // legger til det som skal skrives
             // TODO lag en get linesToWrite i pulje (som tar hensin til forskjellige katogorier...)
-            pulje.getAllLiftersInPulje().forEach(lofter -> lofterLines.add(lofter.getOutput()));
+           for (FemkampKategori femkampKategori : pulje1.getFemkampKategoris()) {
+                // legger til femkampkategori øverst
+                //lofterLines.add(Arrays.asList(femkampKategori.getName()));
+                //lofterLines.add(Arrays.asList(femkampKategori.getName(), "", "", "", "", "", "", "", ""));
+
+                ArrayList<Lifter> lifters = femkampKategori.getLifters();  
+                lifters.forEach(lofter -> lofterLines.add(lofter.getOutput())); 
+                lofterLines.add(Arrays.asList(""));
+                     
+           }
 
             // legger til output data til readonly filen før skriving
             GoogleDockReaderAndWriter.addOutputSheetData("pulje1", lofterLines);
