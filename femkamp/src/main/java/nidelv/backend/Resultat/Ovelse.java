@@ -83,7 +83,7 @@ public class Ovelse {
         boolean forrigeVarEtForsok = true;
         for (Object forsok : forsokene) {
             String forsokStreng = (String) forsok;
-            boolean etResultat = !forsokStreng.equals("");
+            boolean etResultat = forsokStreng == null || !forsokStreng.equals("");
 
             if (!forrigeVarEtForsok && etResultat)
                 return false;

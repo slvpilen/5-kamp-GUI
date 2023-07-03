@@ -116,7 +116,10 @@ public class Lifter {
             addErrorMessage("Mangler kroppsvekt");
         
         try {
-            return Ovelse.convertObjToDouble(kroppsvekt, this);
+            double kroppsvektDouble = Ovelse.convertObjToDouble(kroppsvekt, this);
+            if (kroppsvektDouble < 10)
+                addErrorMessage("kroppsvekt: " + kroppsvekt +  "kg er usansynelig lav!");
+            return kroppsvektDouble;
         } catch (NumberFormatException e) {
             addErrorMessage("kroppsvekt: " + kroppsvekt +  "er ikke riktig format");
             return 0;

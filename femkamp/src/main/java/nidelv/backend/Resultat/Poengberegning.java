@@ -104,7 +104,7 @@ public class Poengberegning {
 
 
     private static double calculateSinclaire(char kjonn, double kroppsvekt, int weight) {
-        boolean missingInfo = !(kjonn=='M' || kjonn =='K') || kroppsvekt<10 || weight <3;
+        boolean missingInfo = !(kjonn=='M' || kjonn =='K') || kroppsvekt<=0 || weight <1;
         if (missingInfo)
             return 0;
 
