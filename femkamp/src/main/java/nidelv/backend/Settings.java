@@ -20,7 +20,7 @@ public class Settings {
 
     public final static List<String> rekkefolgeKolonnerOutput = Arrays.asList("navn", "femkampkategori",
         //"kroppsvekt", "femkampkategori", "fodselsdato", "lag", 
-        "rykk1", "rykk2", "rykk3", "stot1", "stot2", "stot3", "treHopp", "kuleKast", "40Sprint", "poeng", "rank");
+        "rykk1", "rykk2", "rykk3", "stot1", "stot2", "stot3", "treHopp", "kuleKast", "40Sprint", "poeng", "rank", "nodvendigForAaTaLedelsen");
         // leggtil rank og hva som trengs for å finne også!
 
 }

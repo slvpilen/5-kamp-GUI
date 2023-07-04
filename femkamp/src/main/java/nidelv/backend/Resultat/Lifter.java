@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import nidelv.backend.FemkampKategori;
 import nidelv.backend.Settings;
@@ -24,8 +25,8 @@ public class Lifter {
 
     private String errorMessage;
 
-    private String currentOvelse; // oppdateres fra pulje (ikke laget ennå)
-    private double nodvendigForAaTaLedelsen;
+    private String currentOvelse = "40Sprint"; // oppdateres fra pulje (ikke laget ennå)
+    private Double nodvendigForAaTaLedelsen;
 
 
     public Lifter(final String pulje, int linjeId, List<Object> sheetLine) {
@@ -235,6 +236,9 @@ public class Lifter {
 
         if (type.equals("rank"))
             return rank;
+        
+        if (type.equals("nodvendigForAaTaLedelsen"))
+            return nodvendigForAaTaLedelsen;
 
         // samme for rank
         // samme for maa ha for å ta ledelsen     
@@ -268,6 +272,11 @@ public class Lifter {
         }
 
         return outputLine;
+    }
+
+    public void oppdaterNodvendigForLedelse(double lederScore) {
+        Ovelse ovelse = getOvelse(currentOvelse);
+        this.nodvendigForAaTaLedelsen = Poengberegning.calculateHvaSomTrengsForLedelse(ovelse, this, lederScore);
     }
     
 
@@ -321,6 +330,18 @@ public class Lifter {
 
     public String getErrorMessage() {
         return this.errorMessage;
+    }
+
+    public Ovelse getOvelse(String ovelseNavn) {
+        Optional<Ovelse> ovelse = ovelser.stream().filter(o -> o.getNavn().equals(ovelseNavn)).findFirst();
+        if (ovelse.isPresent())
+            return ovelse.get();
+
+        throw new IllegalArgumentException("kan ikke finne ovelse: " + ovelseNavn);
+    }
+
+    public void setNodvendigForAaTaLedelsen(Double resultat) {
+        this.nodvendigForAaTaLedelsen = resultat;
     }
 
 

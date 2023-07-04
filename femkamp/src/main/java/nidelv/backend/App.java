@@ -53,7 +53,6 @@ public class App {
            for (FemkampKategori femkampKategori : pulje1.getFemkampKategoris()) {
                 // legger til femkampkategori øverst
                 //lofterLines.add(Arrays.asList(femkampKategori.getName()));
-                //lofterLines.add(Arrays.asList(femkampKategori.getName(), "", "", "", "", "", "", "", ""));
 
                 ArrayList<Lifter> lifters = femkampKategori.getLifters();  
                 lifters.forEach(lofter -> lofterLines.add(lofter.getOutput())); 
@@ -75,7 +74,7 @@ public class App {
 
             takeBreak(5);
 
-            // oppdaterer manageData for en ny iterasjon i løkken 
+            // laster inn data fra inputSheet og inn i programmet
             manageData.updatePuljer();
         }
     }

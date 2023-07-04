@@ -1,8 +1,10 @@
 package nidelv.backend.Resultat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -50,16 +52,6 @@ public class Poengberegning {
         }
     }
 
-    // TODO lag dette ferdi:
-    // public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
-
-    //     double scoreForOvelse = calculatePoints(ovelse, lifter.getKjonn(), lifter.getKroppsvekt());
-    //     double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
-    //     double scoreAaOppnaa = lederScore-lofterSinScoreUtenSisteOvelse; // bør rundes av?
-
-    //     double 
-
-    // }
 
     private static double calculateTreHoppScore(double lengde) {
         double score = lengde*20;
@@ -104,7 +96,7 @@ public class Poengberegning {
 
 
     private static double calculateSinclaire(char kjonn, double kroppsvekt, int weight) {
-        boolean missingInfo = !(kjonn=='M' || kjonn =='K') || kroppsvekt<=0 || weight <1;
+        boolean missingInfo = !(kjonn=='M' || kjonn=='K') || kroppsvekt<=0 || weight<1;
         if (missingInfo)
             return 0;
 
@@ -113,31 +105,117 @@ public class Poengberegning {
             return 0;
 
         double points = 0.0;
-        double coefficient;
-        double divisor;
+        
+        List<Double> coefficientAndDevisor = coefficientAndDivisor(kjonn);
+        double coefficient = coefficientAndDevisor.get(0);
+        double divisor = coefficientAndDevisor.get(1);
 
+        points = weight * Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2));
+        return round(points, 2);
+    }
+
+
+    private static List<Double> coefficientAndDivisor(char kjonn) {
         switch(kjonn) {
 
             case 'M':
-                coefficient = 0.751945030;
-                divisor = 175.508;
-                break;
+                double coefficient = 0.751945030;
+                double divisor = 175.508;
+                return Arrays.asList(coefficient, divisor);
             
             case 'K':
                 coefficient = 0.783497476;
                 divisor = 153.655;
-                break;
+                return Arrays.asList(coefficient, divisor);
             
             default:
                 throw new IllegalArgumentException("Not a valid kjonn");            
 
         }
 
+    }
+    // TODO lag dette ferdi:
+    public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
 
-        points = weight * Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2));
-        return round(points, 2);
+        double scoreForOvelse = calculatePoints(ovelse, lifter.getKjonn(), lifter.getKroppsvekt());
+        double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
+        double scoreAaOppnaaIOvelse = round(lederScore,2)-lofterSinScoreUtenSisteOvelse; // TODO bør rundes av?
+
+        double somTrengs = calculateDetSomTrengs(scoreAaOppnaaIOvelse, ovelse.getNavn(), lifter);
+
+        return somTrengs;
 
     }
+
+    private static double calculateDetSomTrengs(double scoreAaOppnaa, String ovelseNavn, Lifter lifter) {
+        switch (ovelseNavn) {
+            case "treHopp":
+                return calculateDetSomTrengsTreHopp(scoreAaOppnaa);
+
+            case "kuleKast":
+                return calculateDetSomTrengsKulekast(scoreAaOppnaa);
+
+            case "40Sprint":
+                return calculateDetSomTrengsSprint(scoreAaOppnaa);
+            
+            case "rykk":
+            case "stot":
+                return calculateDetSomTrengsLoft(scoreAaOppnaa, lifter);
+
+            default:
+                throw new IllegalArgumentException("Invalid ovelse: " + ovelseNavn);
+
+        }
+    }
+
+
+    private static double calculateDetSomTrengsTreHopp(double scoreAaOppnaa) {
+        double lengde = scoreAaOppnaa/20;
+        return Math.ceil(lengde * 100) / 100; // runder av til øvre centimeter
+    }
+
+
+
+    private static double calculateDetSomTrengsKulekast(double scoreAaOppnaa) {
+        double lengde = scoreAaOppnaa/13;
+        return Math.ceil(lengde * 100) / 100; // runder av til øvre centimeter
+    }
+
+
+
+    // TODO sjekk om dette gi riktig tider!
+    private static double calculateDetSomTrengsSprint(double scoreAaOppnaa) {
+        double BASE_TIME = 8.0;
+        int BASE_SCORE = 80;
+        double TIME_DELTA = 0.1;
+        int SCORE_DELTA = 4;
+
+        double scoreDifference = BASE_SCORE - scoreAaOppnaa-0.01;
+        double timeChange = (scoreDifference / SCORE_DELTA) * TIME_DELTA;
+        double finalTime = BASE_TIME + timeChange;
+
+        double roundedFinalTime = Math.floor(finalTime * 10) / 10;
+
+        boolean negativTid = roundedFinalTime<0;
+        if (negativTid)
+            return 0;
+
+        return roundedFinalTime;
+    }
+
+
+
+    private static double calculateDetSomTrengsLoft(double scoreAaOppnaa, Lifter lifter) {
+        List<Double> coefficientAndDivisor = coefficientAndDivisor(lifter.getKjonn());
+        double coefficient = coefficientAndDivisor.get(0);
+        double divisor = coefficientAndDivisor.get(1);
+
+        double nodvendigVekt= scoreAaOppnaa / Math.pow(10, coefficient * Math.pow(Math.log10(lifter.getKroppsvekt()/divisor), 2));
+
+        return Math.ceil(nodvendigVekt);
+    }
+
+
 
     private static double round(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
@@ -148,5 +226,7 @@ public class Poengberegning {
 
         return (double) tmp / factor;
     }
+
+
     
 }

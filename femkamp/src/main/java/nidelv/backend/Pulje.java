@@ -56,9 +56,10 @@ public class Pulje {
         appendErrorMeldingerTilGoogleSheet();
     }
 
+    // TODO: bytt navn, denne gjør mer enn sortere; se selv
     private void sortLifters() {
         if (comparator != null)
-            femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLiftersAndUpdateRank(this.comparator));
+            femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLiftersAndUpdateRankAndPoengForLedelse(this.comparator));
     }
 
     public String getName() {

@@ -47,12 +47,22 @@ public class FemkampKategori {
         return lifters.size();
     }
 
-    public void sortLiftersAndUpdateRank(Comparator<Lifter> comparator) {
+    // TODO : dårlig og langt navn, rewrite!
+    public void sortLiftersAndUpdateRankAndPoengForLedelse(Comparator<Lifter> comparator) {
         // TODO ved lik poeng, skal rangers etter startnummer?
         lifters.sort(comparator);
-        
+
+        double lederScore = lifters.get(0).getPoeng();
+
         for (int i=0 ; i<lifters.size() ; i++) {
-            lifters.get(i).setRank(i+1);
+            Lifter lifter = lifters.get(i);
+            lifter.setRank(i+1);
+
+            boolean besteLofter = i==0;
+            if (besteLofter)
+                lifter.setNodvendigForAaTaLedelsen(null);
+            else
+                lifter.oppdaterNodvendigForLedelse(lederScore);
         }
     }
 
