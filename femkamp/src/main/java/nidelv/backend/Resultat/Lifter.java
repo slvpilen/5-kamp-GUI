@@ -25,13 +25,14 @@ public class Lifter {
 
     private String errorMessage;
 
-    private String currentOvelse = "40Sprint"; // oppdateres fra pulje (ikke laget ennå)
+    private String currentOvelse; // oppdateres fra pulje (ikke laget ennå)
     private Double nodvendigForAaTaLedelsen;
 
 
-    public Lifter(final String pulje, int linjeId, List<Object> sheetLine) {
+    public Lifter(final String pulje, int linjeId, List<Object> sheetLine, String currentOvelse) {
         this.pulje = pulje;
         this.linjeId = linjeId;
+        setCurrentOvelse(currentOvelse);
 
         standarizeSheetLine(sheetLine);
         
@@ -40,6 +41,15 @@ public class Lifter {
 
         createOvelser();
         updatePoeng();
+    }
+
+    private void setCurrentOvelse(String currentOvelse) {
+        if (currentOvelse == null) {
+            this.currentOvelse = "rykk";
+        }
+        else {
+            this.currentOvelse = currentOvelse;
+        }
     }
 
     private void standarizeSheetLine(List<Object> sheetLine) {
@@ -79,8 +89,9 @@ public class Lifter {
 
     }
 
-    public void updateLifter(List<Object> sheetLine) {
+    public void updateLifter(List<Object> sheetLine, String currentOvelse) {
         nullstillErrormelding();
+        setCurrentOvelse(currentOvelse);
         standarizeSheetLine(sheetLine);
         updateLifterAttributesFromSheetLine(sheetLine); 
         updateOvelserOgPoeng();

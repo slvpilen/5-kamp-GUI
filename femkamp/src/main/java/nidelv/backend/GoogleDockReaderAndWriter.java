@@ -10,9 +10,8 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get;
+import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
 import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
-import com.google.api.services.sheets.v4.model.BatchUpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
@@ -24,9 +23,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -64,6 +61,7 @@ public class GoogleDockReaderAndWriter {
             .setDataStoreFactory(new FileDataStoreFactory(new java.io.File("tokens")))
             .setAccessType("offline")
             .build();
+
         Credential credential = new AuthorizationCodeInstalledApp(
             flow, new LocalServerReceiver())
             .authorize("user");
@@ -74,22 +72,33 @@ public class GoogleDockReaderAndWriter {
     public static Sheets getSheetsService() throws IOException, GeneralSecurityException {
         Credential credential = authorize();
         return new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(),
-        GsonFactory.getDefaultInstance(), credential)
-        .setApplicationName(APPLICATION_NAME)
-        .build();
+            GsonFactory.getDefaultInstance(), credential)
+            .setApplicationName(APPLICATION_NAME)
+            .build();
+    }
+
+    public static List<String> getInputSpreadSheetNamesContaining(String containing) throws IOException, GeneralSecurityException {
+        List<String> sheetNames = getInputSpreadsheetNames();
+        List<String> sheetNamesContaining = sheetNames
+            .stream().
+            filter(n -> n.contains(containing)).collect(Collectors.toList());
+        
+        return sheetNamesContaining;
     }
 
 
-
-    public static List<String> getSpreadsheetNames() throws IOException, GeneralSecurityException {
+    public static List<String> getInputSpreadsheetNames() throws IOException, GeneralSecurityException {
 
 
         Spreadsheet sp = sheetsService.spreadsheets().get(SPREADSHEET_ID_PLOTTING).execute();
         List<Sheet> sheets = sp.getSheets();
-        List<String> sheetNames = sheets.stream().map(sheet -> sheet.getProperties().getTitle()).collect(Collectors.toList());
+        List<String> sheetNames = sheets.stream().map(
+            sheet -> sheet.getProperties().getTitle())
+            .collect(Collectors.toList());
     
         return sheetNames;
     }
+
 
     private static String extractSpreadsheetId(String url) {
         String pattern = "https://docs\\.google\\.com/spreadsheets/d/([a-zA-Z0-9-_]+)/";
@@ -103,12 +112,16 @@ public class GoogleDockReaderAndWriter {
         }
     }
 
-    public static Get getRespons(String sheetName) throws IOException {
-        String range = sheetName+"!A2:P" + String.valueOf(Settings.antallRaderSomLeses);
-
+    public static BatchGetValuesResponse getMultipleSheetInputData(List<String> sheetNames) throws IOException {
+        List<String> ranges = new ArrayList<>();
+        for (String sheetName : sheetNames) {
+            String range = sheetName + "!A2:P" + String.valueOf(Settings.antallRaderSomLeses);
+            ranges.add(range);
+        }
         return sheetsService.spreadsheets().values()
-            .get(SPREADSHEET_ID_PLOTTING, range);
-       
+            .batchGet(SPREADSHEET_ID_PLOTTING)
+            .setRanges(ranges)
+            .execute();
     }
 
     public static void deletInputSheetData() {
@@ -144,21 +157,9 @@ public class GoogleDockReaderAndWriter {
     }
 
 
-    public static void writeAllToFiles() {
-        Map<String, List<ValueRange>> filesToWrite = new HashMap<>();
-
-        // kunne lagra dem som map fra start av
-        filesToWrite.put(SPREADSHEET_ID_PLOTTING, inPutSheetsData);
-        filesToWrite.put(SPREADSHEET_ID_READING, outPutSheetsData);
-
-        filesToWrite.forEach((key, value) -> {
-            try {
-                writeToFile(value, key);
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        });
+    public static void writeErrorAndOutputToFiles() throws IOException {
+        writeToFile(inPutSheetsData, SPREADSHEET_ID_PLOTTING);
+        writeToFile(outPutSheetsData, SPREADSHEET_ID_READING);
     }
 
     private static void writeToFile(List<ValueRange> data, String spreadsheetId) throws IOException {
@@ -178,13 +179,10 @@ public class GoogleDockReaderAndWriter {
 
         GoogleDockReaderAndWriter.setSpreadsheetIDAndSheetService();
   
-        List<String> spreadsheetNames = getSpreadsheetNames();
+        List<String> spreadsheetNames = getInputSpreadsheetNames();
         spreadsheetNames.forEach(name -> System.out.println(name));
 
         System.out.println("----------");
-        //ValueRange response = getRespons(spreadsheetNames.get(0));
-
-
         
     }
     

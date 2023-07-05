@@ -3,26 +3,30 @@ package nidelv.backend;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import nidelv.backend.Resultat.Lifter;
 //import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
+import nidelv.backend.Resultat.Ovelse;
 
 public class Pulje {
 
     private final String puljeName;
     private Comparator<Lifter> comparator;
-    private com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get response;
+    //private com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get response;
+    private List<List<Object>> values;
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
-    private String currentOvelse; // Legg til for å regne ut hva må ta for å gå forbi
+    //private String currentOvelse; // Legg til for å regne ut hva må ta for å gå forbi
     private List<Object> errorMeldinger;
 
 
-    public Pulje(final String puljeName, com.google.api.services.sheets.v4.Sheets.Spreadsheets.Values.Get get) {
+    public Pulje(final String puljeName, List<List<Object>> values) throws IOException {
         this.puljeName = puljeName;
-        this.response = get;        
+        this.values = values; 
+        createLifters();       
     }
 
 
@@ -33,28 +37,33 @@ public class Pulje {
 
         femkampKategoris.add(new FemkampKategori());
 
-        int lifterid = 0;
-        List<List<Object>> values = response.execute().getValues();
-        for (int i = 0; i < values.size(); i++) {
+        String currentOvelse = extractCurrentOvelse(values);
+
+        int lifterid;
+        for (int i = 1; i < values.size(); i++) {
+            lifterid = i;
 
             boolean tomRad = values.get(i).size()==0; 
             if (tomRad) {
                 femkampKategoris.add(new FemkampKategori());
             }
             else {
-                Lifter newLifter = new Lifter(puljeName, lifterid, values.get(i));
-                femkampKategoris.get(femkampKategoris.size()-1).addLifter(newLifter);
-
-                String errorMessage = newLifter.getErrorMessage();
-                this.errorMeldinger.add(errorMessage);
-
-                lifterid++;
+                createLifter(lifterid, currentOvelse);
             }
         }
         this.femkampKategoris = new ArrayList<>(femkampKategoris.stream().filter(femkampkat -> femkampkat.numberOfLifters()>0).collect(Collectors.toList()));
         sortLifters();
         appendErrorMeldingerTilGoogleSheet();
     }
+
+    private void createLifter(int lifterid, String currentOvelse) {
+                        Lifter newLifter = new Lifter(puljeName, lifterid, values.get(lifterid), currentOvelse);
+                femkampKategoris.get(femkampKategoris.size()-1).addLifter(newLifter);
+
+                String errorMessage = newLifter.getErrorMessage();
+                this.errorMeldinger.add(errorMessage);
+    }
+
 
     // TODO: bytt navn, denne gjør mer enn sortere; se selv
     private void sortLifters() {
@@ -67,52 +76,55 @@ public class Pulje {
     }
 
 
-    public void setComparator(Comparator<Lifter> comparator) {
+    public void setComparatorAndSort(Comparator<Lifter> comparator) {
         this.comparator = comparator;
         sortLifters();
     }
 
-    public void updateResults() throws IOException {
+    public void updateResults(List<List<Object>> values) throws IOException {
         this.errorMeldinger.clear();
 
-        List<List<Object>> values = response.execute().getValues();;
+        this.values = values;
         values = values.stream().filter(line -> line.size()>0).collect(Collectors.toList());
         int numberOfLiftersInPulje = femkampKategoris.stream().mapToInt(femkampKat -> femkampKat.numberOfLifters()).sum();
-        if (values.size() != numberOfLiftersInPulje)
+        // -1 fordi første linje ikke skal telles, det er currentOvelse info
+        if (values.size()-1 != numberOfLiftersInPulje) 
             throw new IllegalNumberOfLiftersException("feil antall løftere i dock og i programmet"); 
+        
+        String currentOvelse = extractCurrentOvelse(values);
 
-        updateAndvaluateNumbersOfLifters(values);
+        updateAndvaluateNumbersOfLifters(currentOvelse);
 
         sortLifters();  
         appendErrorMeldingerTilGoogleSheet();         
     }
 
+    //private List<List<Object>> 
 
-    private void updateAndvaluateNumbersOfLifters(List<List<Object>> values) {
+
+    private void updateAndvaluateNumbersOfLifters(String currentOvelse) {
 
         int currentFemkampKategoriIndex = 0;
         FemkampKategori currentFemkampKategori = femkampKategoris.get(0);
         Collection<Lifter> lifters = currentFemkampKategori.getLifters();
 
-        int index = 0;
-
-        for (List<Object> line : values) {
-            index++;
+        for (int i =1 ; i<values.size() ; i++) {
+            List<Object> line = values.get(i);
 
             boolean harInnehold = line.size()>0;
 
             if (harInnehold) {
-                int index2 = index;
-                Optional<Lifter> lifter = lifters.stream().filter(l -> l.getId()==index2).findFirst();
-                if (lifter.isPresent())   {
-                    Lifter lifterToUpdate =  lifter.get();
-                    lifterToUpdate.updateLifter(line);
-                    lifter.get().updateLifter(line);
+                int lifterID = i;
+                Optional<Lifter> lifter = lifters.stream().filter(
+                    lofter -> lofter.getId()==lifterID).findFirst();
+                if (lifter.isPresent()) {
+                    Lifter lifterToUpdate = lifter.get();
+                    lifterToUpdate.updateLifter(line, currentOvelse);
 
                     String errorMessage = lifterToUpdate.getErrorMessage();
                     errorMeldinger.add(errorMessage);
                 }    
-                else
+                else 
                     throw new IllegalNumberOfLiftersException("can't find the missing lifter!"); 
             }
 
@@ -127,6 +139,41 @@ public class Pulje {
 
     }
 
+
+
+    private String extractCurrentOvelse(List<List<Object>> values) {
+        List<Object> currentOvelseLine = values.get(0);
+        Object tegn = (Object) "*";
+        currentOvelseLine.contains(tegn);
+        int antallForekomster = Collections.frequency(currentOvelseLine, tegn);
+
+
+        // validering
+        if (antallForekomster!= 1) {
+            errorMeldinger.add("feil antall current ovelse!");
+            return null;
+        }
+        
+        int indexTilCurrentOvelse = currentOvelseLine.indexOf(tegn);
+
+
+        boolean currentOvelseOk = false;
+        String currenOvelseNavn = Settings.rekkefolgeKolonnerInput.get(indexTilCurrentOvelse);
+
+        for (String ovelse : Ovelse.validOvelser) {
+            if (currenOvelseNavn.contains(ovelse)){
+                currentOvelseOk = true;
+                break;
+            }
+        }
+
+        if (!currentOvelseOk) {
+            errorMeldinger.add(currenOvelseNavn + " er ikke en gyldig ovelse");
+            return null;
+        }
+
+        return currenOvelseNavn;
+    }
 
 
     // denne skal skrive meldingen til google sheet

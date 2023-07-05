@@ -36,7 +36,7 @@ public class App {
 
         // setter comparatoren til pulje 1
         Pulje pulje1 = manageData.getPulje("pulje1");
-        pulje1.setComparator(poengComparator);
+        pulje1.setComparatorAndSort(poengComparator);
 
         // denne kjøres gjennom hele stevnet
         int iterationNumber = 0;
@@ -56,8 +56,7 @@ public class App {
 
                 ArrayList<Lifter> lifters = femkampKategori.getLifters();  
                 lifters.forEach(lofter -> lofterLines.add(lofter.getOutput())); 
-                lofterLines.add(Arrays.asList(""));
-                     
+                lofterLines.add(Arrays.asList(""));         
            }
 
             // legger til output data til readonly filen før skriving
@@ -65,7 +64,7 @@ public class App {
 
 
             // skriver til sheet
-            GoogleDockReaderAndWriter.writeAllToFiles();
+            GoogleDockReaderAndWriter.writeErrorAndOutputToFiles();
             
             // deleting outputData
             GoogleDockReaderAndWriter.deletInputSheetData();
