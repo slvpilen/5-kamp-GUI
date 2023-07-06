@@ -157,22 +157,23 @@ public class Pulje {
         int indexTilCurrentOvelse = currentOvelseLine.indexOf(tegn);
 
 
-        boolean currentOvelseOk = false;
-        String currenOvelseNavn = Settings.rekkefolgeKolonnerInput.get(indexTilCurrentOvelse);
+        String currentOvelseNavn = Settings.rekkefolgeKolonnerInput.get(indexTilCurrentOvelse);
 
+        currentOvelseNavn = convertToValidOvelse(currentOvelseNavn);
+
+        return currentOvelseNavn;
+    }
+
+    // TODO bedre navn; denne gjør om eks rykk1 til rykk, dersom ikke fines gyldig ovelse returnerernull
+    // og skriver feilmelding
+    private String convertToValidOvelse(String currentOvelseNavn) {
         for (String ovelse : Ovelse.validOvelser) {
-            if (currenOvelseNavn.contains(ovelse)){
-                currentOvelseOk = true;
-                break;
+            if (currentOvelseNavn.contains(ovelse)){
+                return ovelse;
             }
         }
-
-        if (!currentOvelseOk) {
-            errorMeldinger.add(currenOvelseNavn + " er ikke en gyldig ovelse");
-            return null;
-        }
-
-        return currenOvelseNavn;
+        errorMeldinger.add(currentOvelseNavn + " er ikke en gyldig ovelse");
+        return null;
     }
 
 

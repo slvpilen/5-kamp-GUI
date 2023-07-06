@@ -51,8 +51,6 @@ public class App {
             // legger til det som skal skrives
             // TODO lag en get linesToWrite i pulje (som tar hensin til forskjellige katogorier...)
            for (FemkampKategori femkampKategori : pulje1.getFemkampKategoris()) {
-                // legger til femkampkategori øverst
-                //lofterLines.add(Arrays.asList(femkampKategori.getName()));
 
                 ArrayList<Lifter> lifters = femkampKategori.getLifters();  
                 lifters.forEach(lofter -> lofterLines.add(lofter.getOutput())); 

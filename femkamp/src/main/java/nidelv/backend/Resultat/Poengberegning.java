@@ -1,12 +1,8 @@
 package nidelv.backend.Resultat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Poengberegning {
 
@@ -134,11 +130,12 @@ public class Poengberegning {
         }
 
     }
-    // TODO lag dette ferdi:
+    
     public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
 
         double scoreForOvelse = calculatePoints(ovelse, lifter.getKjonn(), lifter.getKroppsvekt());
         double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
+        // TODO: Avgjør om rund OPPOVER til nærmest 1/100???:
         double scoreAaOppnaaIOvelse = round(lederScore,2)-lofterSinScoreUtenSisteOvelse; // TODO bør rundes av?
 
         double somTrengs = calculateDetSomTrengs(scoreAaOppnaaIOvelse, ovelse.getNavn(), lifter);
@@ -210,7 +207,8 @@ public class Poengberegning {
         double coefficient = coefficientAndDivisor.get(0);
         double divisor = coefficientAndDivisor.get(1);
 
-        double nodvendigVekt= scoreAaOppnaa / Math.pow(10, coefficient * Math.pow(Math.log10(lifter.getKroppsvekt()/divisor), 2));
+        // deler på 1.2, fordi 5-kamp poeng er sinclaire ganget med 1.2
+        double nodvendigVekt= scoreAaOppnaa/1.2 / (Math.pow(10, coefficient * Math.pow(Math.log10(lifter.getKroppsvekt()/divisor), 2)));
 
         return Math.ceil(nodvendigVekt);
     }

@@ -193,6 +193,8 @@ public class Ovelse {
             return 0.0;
             
         if (obj instanceof String) {
+            if (obj.equals(""))
+                return 0;
             try {
                 return Double.valueOf((String) obj);
             } catch (NumberFormatException e) {
@@ -211,6 +213,8 @@ public class Ovelse {
             return 0;
 
         if (obj instanceof String) {
+            if (obj.equals(""))
+                return 0;
             try {
                 return Integer.valueOf((String) obj);
             } catch (NumberFormatException e) {
