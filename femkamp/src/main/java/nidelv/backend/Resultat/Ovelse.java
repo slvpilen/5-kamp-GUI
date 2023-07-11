@@ -17,7 +17,7 @@ public class Ovelse {
     private int forsok2;
     private int forsok3;
 
-
+    private double poeng;
     protected double besteResultat;
 
     public Ovelse(String navn, List<Object> forsok, Lifter lifter) {
@@ -166,6 +166,14 @@ public class Ovelse {
 
     public double getBesteResultat() {
         return besteResultat;
+    }
+
+    public void updatePoeng() {
+        this.poeng = Poengberegning.calculatePoints(this, lifter);
+    }
+
+    public double getPoeng() {
+        return poeng;
     }
 
     public List<Integer> getForsok() {

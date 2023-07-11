@@ -6,25 +6,8 @@ import java.util.List;
 
 public class Poengberegning {
 
-    // OBS! Usikker på om poeng for rykk og støt beregnes riktig, var uklart i regelverket.
 
-
-    public static double calculateTotalPoeng(Collection<Ovelse> ovelser, Lifter lifter) {
-         double points = 0.0;
-
-        char kjonn = lifter.getKjonn();
-        double kroppsvekt = lifter.getKroppsvekt();
-
-        for (Ovelse ovelse : ovelser) {
-            points+= calculatePoints(ovelse, kjonn, kroppsvekt);            
-        }
-
-        return round(points, 2);
-    }
-
-
-
-    public static double calculatePoints(Ovelse ovelse, char kjonn, double kroppsvekt) {
+    public static double calculatePoints(Ovelse ovelse, Lifter lifter) {
         String ovelseNavn = ovelse.getNavn();
         double resultat = ovelse.getBesteResultat();
 
@@ -41,7 +24,7 @@ public class Poengberegning {
             
             case "rykk":
             case "stot":
-                return calculateLofteScore(kjonn, kroppsvekt, (int) resultat);
+                return calculateLofteScore(lifter.getKjonn(), lifter.getKroppsvekt(), (int) round(resultat,0));
 
             default:
                 throw new IllegalArgumentException("Invalid ovelse: " + ovelse);
@@ -61,6 +44,7 @@ public class Poengberegning {
 
 
     private static int calculateSprintScore(double time) {
+        System.out.println(time);
         double BASE_TIME = 8.0;
         int BASE_SCORE = 80;
         double TIME_DELTA = 0.1;
@@ -132,7 +116,7 @@ public class Poengberegning {
     public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
 
         // TODO poeng bør lagres i Ovelse, for å slippe å gjøre beregningen to ganger (både for total og hva som trengs)
-        double scoreForOvelse = calculatePoints(ovelse, lifter.getKjonn(), lifter.getKroppsvekt());
+        double scoreForOvelse = ovelse.getPoeng();
         double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
         // TODO: Avgjør om rund OPPOVER til nærmest 1/100???:
         double scoreAaOppnaaIOvelse = round(lederScore,2)-lofterSinScoreUtenSisteOvelse; // TODO bør rundes av?

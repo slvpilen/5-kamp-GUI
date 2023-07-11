@@ -188,8 +188,6 @@ public class Lifter {
             List<Object> alleForsok = finnAlleForsok(ovelseNavn);
             ovelser.add(new Ovelse(ovelseNavn, alleForsok, this));
         }
-
-        updatePoeng();
     }
 
     private List<Object> finnAlleForsok(String ovelseNavn) {
@@ -216,7 +214,12 @@ public class Lifter {
 
 
     private void updatePoeng() {
-        this.poeng = Poengberegning.calculateTotalPoeng(ovelser, this);
+        updatePoengForAlleOvelser();
+        this.poeng = ovelser.stream().mapToDouble(ovelse -> ovelse.getPoeng()).sum();
+    }
+
+    private void updatePoengForAlleOvelser() {
+        ovelser.forEach(ovelse -> ovelse.updatePoeng());
     }
 
 
