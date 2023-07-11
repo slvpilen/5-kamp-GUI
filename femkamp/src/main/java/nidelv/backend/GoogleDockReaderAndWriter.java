@@ -149,6 +149,8 @@ public class GoogleDockReaderAndWriter {
     public static void addInputSheetData(String sheetName, String cellStartPlotting, List<Object> errorMeldinger) throws IOException {
         StandarizeAndAddValueRangeToSheetData(inPutSheetsData, sheetName ,cellStartPlotting, errorMeldinger);
     }
+
+
     private static void StandarizeAndAddValueRangeToSheetData(List<ValueRange> sheetData, String sheetName, String cellStartPlotting, List<Object> dataToWrite) throws IOException {
         List<List<Object>> rows = dataToWrite.stream()
                                     .map(data -> Collections.singletonList(data)) // bruk et lambda-uttrykk her
@@ -187,12 +189,14 @@ public class GoogleDockReaderAndWriter {
     }
 
     public static void createNewSheetsOutput(List<String> sheetNames) throws IOException {
-        AddSheetRequest addSheetRequest = new AddSheetRequest();
-        SheetProperties sheetProperties = new SheetProperties();
 
         List<Request> requests = new ArrayList<>();
 
         for (String newSheetName : sheetNames) {
+            
+            AddSheetRequest addSheetRequest = new AddSheetRequest();
+            SheetProperties sheetProperties = new SheetProperties();
+
             sheetProperties.setTitle(newSheetName);
             addSheetRequest.setProperties(sheetProperties);
 

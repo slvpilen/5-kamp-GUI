@@ -1,7 +1,6 @@
 package nidelv.backend.Resultat;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 public class Poengberegning {
@@ -44,7 +43,6 @@ public class Poengberegning {
 
 
     private static int calculateSprintScore(double time) {
-        System.out.println(time);
         double BASE_TIME = 8.0;
         int BASE_SCORE = 80;
         double TIME_DELTA = 0.1;
@@ -110,16 +108,13 @@ public class Poengberegning {
                 throw new IllegalArgumentException("Not a valid kjonn");            
 
         }
-
     }
     
     public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
 
-        // TODO poeng bør lagres i Ovelse, for å slippe å gjøre beregningen to ganger (både for total og hva som trengs)
         double scoreForOvelse = ovelse.getPoeng();
         double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
-        // TODO: Avgjør om rund OPPOVER til nærmest 1/100???:
-        double scoreAaOppnaaIOvelse = round(lederScore,2)-lofterSinScoreUtenSisteOvelse; // TODO bør rundes av?
+        double scoreAaOppnaaIOvelse = round(lederScore,2)-lofterSinScoreUtenSisteOvelse; 
 
         double somTrengs = calculateDetSomTrengs(scoreAaOppnaaIOvelse, ovelse.getNavn(), lifter);
 
@@ -162,8 +157,6 @@ public class Poengberegning {
     }
 
 
-
-    // TODO sjekk om dette gi riktig tider!
     private static double calculateDetSomTrengsSprint(double scoreAaOppnaa) {
         double BASE_TIME = 8.0;
         int BASE_SCORE = 80;
