@@ -236,7 +236,7 @@ public class Lifter {
 
 
     private void updateOvelse(String navn, List<Object> alleForsok){
-        ovelser.stream().filter(ovelse-> ovelse.getNavn().equals(navn)).findFirst().get().updateBesteResultatOgAlleForsok(alleForsok, this);
+        getOvelse(navn).updateBesteResultatOgAlleForsok(alleForsok, this);
     }
 
 

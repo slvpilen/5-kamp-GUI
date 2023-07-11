@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -43,6 +44,9 @@ public class GoogleDockReaderAndWriter {
 
     private static List<ValueRange> inPutSheetsData  = new ArrayList<>();
     private static List<ValueRange> outPutSheetsData  = new ArrayList<>();
+
+    private static List<ValueRange> previusInPutSheetDate = new ArrayList<>();
+    private static List<ValueRange> previusOutPutSheetData = new ArrayList<>();
 
     public static void setSpreadsheetIDAndSheetService() throws IOException, GeneralSecurityException {
         SPREADSHEET_ID_PLOTTING = extractSpreadsheetId(Settings.googleDockURL_plotting);
@@ -174,9 +178,63 @@ public class GoogleDockReaderAndWriter {
 
 
     public static void writeErrorAndOutputToFiles() throws IOException {
-        writeToFile(inPutSheetsData, SPREADSHEET_ID_PLOTTING);
-        writeToFile(outPutSheetsData, SPREADSHEET_ID_READING);
+        
+        if (writeToFileIfNewData(inPutSheetsData, previusInPutSheetDate, SPREADSHEET_ID_PLOTTING))
+            previusInPutSheetDate = new ArrayList<>(inPutSheetsData);
+
+        if(writeToFileIfNewData(outPutSheetsData, previusOutPutSheetData, SPREADSHEET_ID_READING))
+            previusOutPutSheetData = new ArrayList<>(outPutSheetsData);
+
     }
+
+
+    private static boolean writeToFileIfNewData(List<ValueRange> newData, List<ValueRange> previusData, String spreadsheet_id) throws IOException {
+
+        boolean ulikData = !compareValueRangeLists(newData, previusData);
+        if (ulikData) {
+            writeToFile(newData, spreadsheet_id);
+            System.out.println("skrev til fil!");
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean compareValueRangeLists(List<ValueRange> list1, List<ValueRange> list2) {
+        if (list1.size() != list2.size()) {
+            return false;
+        }
+    
+        for (int i = 0; i < list1.size(); i++) {
+            if (!compareValueRanges(list1.get(i), list2.get(i))) {
+                return false;
+            }
+        }
+    
+        return true;
+    }
+
+    public static boolean compareValueRanges(ValueRange vr1, ValueRange vr2) {
+        if (vr1 == vr2) {
+            return true;
+        }
+        if (vr1 == null || vr2 == null) {
+            return false;
+        }
+        if (!Objects.equals(vr1.getRange(), vr2.getRange())) {
+            return false;
+        }
+        if (!Objects.equals(vr1.getMajorDimension(), vr2.getMajorDimension())) {
+            return false;
+        }
+        if (!Objects.equals(vr1.getValues(), vr2.getValues())) {
+            return false;
+        }
+        return true;
+    }
+    
+    
+
 
     private static void writeToFile(List<ValueRange> data, String spreadsheetId) throws IOException {
         BatchUpdateValuesRequest batchBody = new BatchUpdateValuesRequest()
@@ -193,7 +251,7 @@ public class GoogleDockReaderAndWriter {
         List<Request> requests = new ArrayList<>();
 
         for (String newSheetName : sheetNames) {
-            
+
             AddSheetRequest addSheetRequest = new AddSheetRequest();
             SheetProperties sheetProperties = new SheetProperties();
 
