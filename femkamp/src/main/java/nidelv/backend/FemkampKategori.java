@@ -57,9 +57,9 @@ public class FemkampKategori {
 
             boolean besteLofter = i==0;
             if (besteLofter)
-                lifter.setNodvendigForAaTaLedelsen(null);
+                lifter.setNodvendigForLedelsen(null);
             else
-                lifter.oppdaterNodvendigForLedelse(lederScore);
+                lifter.oppdaterNodvendigForLedelsen(lederScore);
         }
     }
 

@@ -214,6 +214,7 @@ public class Ovelse {
         }
     }
 
+    
     public static int convertObjToInt(Object obj, Lifter lifter) {
         if (obj == null)
             return 0;

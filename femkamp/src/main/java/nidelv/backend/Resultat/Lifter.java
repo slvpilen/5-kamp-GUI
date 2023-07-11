@@ -14,7 +14,7 @@ public class Lifter {
 
     private final String pulje;
     private final int linjeId;
-    private String vektklasse, navn, kategori, femkampkategoriNavn, lag, fodselsdato, klubb;
+    private String navn, kategori, femkampkategoriNavn, lag;
     private double kroppsvekt;
     private char kjonn;
     private Collection<Ovelse> ovelser = new ArrayList<>();
@@ -26,7 +26,7 @@ public class Lifter {
     private String errorMessage;
 
     private String currentOvelse; // oppdateres fra pulje (ikke laget ennå)
-    private Double nodvendigForAaTaLedelsen;
+    private Double nodvendigForLedelsen;
 
 
     public Lifter(final String pulje, int linjeId, List<Object> sheetLine, String currentOvelse) {
@@ -75,7 +75,6 @@ public class Lifter {
 
         setSheetLine(sheetLine);
 
-        this.vektklasse = convertToString(hentLofterInfo("vektklasse"));
         this.kroppsvekt = kroppsvekt;
         this.kategori = kategori;
 
@@ -83,9 +82,7 @@ public class Lifter {
             this.kjonn = this.kategori.charAt(1);
 
         this.femkampkategoriNavn = convertToString(hentLofterInfo("femkampkategori"));
-        this.fodselsdato = convertToString(hentLofterInfo("fodselsdato"));
         this.lag = convertToString(hentLofterInfo("lag"));
-        //this.klubb = convertToString(hentLofterInfo("klubb"));
 
     }
 
@@ -251,8 +248,8 @@ public class Lifter {
         if (type.equals("rank"))
             return rank;
         
-        if (type.equals("nodvendigForAaTaLedelsen"))
-            return nodvendigForAaTaLedelsen;
+        if (type.equals("nodevendig for ledelse"))
+            return nodvendigForLedelsen;
 
         if(type.equals("beste rykk")) {
             Ovelse rykk = getOvelse("rykk");
@@ -296,9 +293,9 @@ public class Lifter {
         return outputLine;
     }
 
-    public void oppdaterNodvendigForLedelse(double lederScore) {
+    public void oppdaterNodvendigForLedelsen(double lederScore) {
         Ovelse ovelse = getOvelse(currentOvelse);
-        this.nodvendigForAaTaLedelsen = Poengberegning.calculateHvaSomTrengsForLedelse(ovelse, this, lederScore);
+        this.nodvendigForLedelsen = Poengberegning.calculateHvaSomTrengsForLedelse(ovelse, this, lederScore);
     }
     
 
@@ -362,8 +359,8 @@ public class Lifter {
         throw new IllegalArgumentException("kan ikke finne ovelse: " + ovelseNavn);
     }
 
-    public void setNodvendigForAaTaLedelsen(Double resultat) {
-        this.nodvendigForAaTaLedelsen = resultat;
+    public void setNodvendigForLedelsen(Double resultat) {
+        this.nodvendigForLedelsen = resultat;
     }
 
 
