@@ -59,26 +59,24 @@ public class Poengberegning {
         return round(score, 2);
     }
 
+
     private static int calculateSprintScore(double time) {
         double BASE_TIME = 8.0;
         int BASE_SCORE = 80;
         double TIME_DELTA = 0.1;
-        int SCORE_DELTA = 4;
-
-        double difference = time - BASE_TIME;
-        int scoreChange = (int) (difference / TIME_DELTA) * SCORE_DELTA;
-        int finalScore = BASE_SCORE - scoreChange;
-        
+        int SCORE_DELTA = 40;
+    
+        double roundedTime = Math.ceil(time * 10) / 10.0;
+        double difference = BASE_TIME - roundedTime;
+        int scoreChange = (int) round((difference * SCORE_DELTA),0);
+        int finalScore = BASE_SCORE + scoreChange;
+    
         boolean negativeScore = finalScore < 0;
-        if (negativeScore) {
+        boolean negativeTime = time <= TIME_DELTA; 
+        if (negativeScore || negativeTime) {
             finalScore = 0;
         }
-
-        boolean nullTidEllerNegativ = time <= TIME_DELTA;
-        if (nullTidEllerNegativ) {
-            finalScore = 0;
-        }
-        
+            
         return finalScore;
     }
     
@@ -133,6 +131,7 @@ public class Poengberegning {
     
     public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
 
+        // TODO poeng bør lagres i Ovelse, for å slippe å gjøre beregningen to ganger (både for total og hva som trengs)
         double scoreForOvelse = calculatePoints(ovelse, lifter.getKjonn(), lifter.getKroppsvekt());
         double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
         // TODO: Avgjør om rund OPPOVER til nærmest 1/100???:
