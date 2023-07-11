@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.List;
 
 
-//import nidelv.backend.Resultat.Lifter.IllegalLifterDataException;
-
 public class Ovelse {
     public static final Collection<String> validOvelser = Arrays.asList("rykk", "stot", "treHopp", "kuleKast", "40Sprint");
 
@@ -14,6 +12,7 @@ public class Ovelse {
     private Lifter lifter;
 
     // kun løft bruker alle forsøk (ikke 3-kamp øvelsene)
+    // TODO kunne vørt bedre å lage en klasse pr øvelse. Evt også flytte Poengberegning til ovelse i den klassen også
     private int forsok1;
     private int forsok2;
     private int forsok3;
@@ -159,7 +158,6 @@ public class Ovelse {
     }
 
     private void updateBesteResultatForLift() {
-        // lag metode som gir alle fosrok som liste
         List<Integer> alleForsok = getForsok();
         alleForsok.sort((a,b) -> b-a);
         

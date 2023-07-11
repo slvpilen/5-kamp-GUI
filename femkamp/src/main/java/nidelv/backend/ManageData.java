@@ -3,10 +3,11 @@ package nidelv.backend;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
@@ -16,16 +17,18 @@ import nidelv.backend.Resultat.Lifter;
 
 public class ManageData {
     
-    //private static final String SPREAD_SHEET_ID = Settings.googleDockURL_plotting;
+
     private Collection<Pulje> puljer = new ArrayList<>();
     private List<String> puljeSpreadsheetNames = new ArrayList<>();
 
+
     public ManageData() throws IOException, GeneralSecurityException {
         GoogleDockReaderAndWriter.setSpreadsheetIDAndSheetService();
-        createPulje();
+        createPuljer();
     }
 
-    private void createPulje() throws IOException, GeneralSecurityException {
+
+    private void createPuljer() throws IOException, GeneralSecurityException {
         this.puljeSpreadsheetNames = GoogleDockReaderAndWriter.getInputSpreadSheetNamesContaining("pulje");
 
         BatchGetValuesResponse inputDataRespons = GoogleDockReaderAndWriter.getMultipleSheetInputData(puljeSpreadsheetNames);
@@ -41,6 +44,28 @@ public class ManageData {
     }
 
 
+
+    public void createMissingOutputSheets() throws IOException, GeneralSecurityException {
+        List<String> puljeOutputSheetnames = GoogleDockReaderAndWriter.getOutputSpreadsheetNames();
+
+        List<String> manglendeOutputSheets = findMissingElements(puljeSpreadsheetNames, puljeOutputSheetnames);
+
+        boolean finnesNoenSomMangler = manglendeOutputSheets.size()>0;
+
+        if (finnesNoenSomMangler)
+            GoogleDockReaderAndWriter.createNewSheetsOutput(manglendeOutputSheets);
+    }
+
+    
+    private static List<String> findMissingElements(List<String> list1, List<String> list2) {
+        List<String> missing = new ArrayList<>(list1);
+        missing.removeAll(list2);
+        return missing;
+    }
+
+
+
+
     private List<List<Object>> extractValues(String spreadSheetName, BatchGetValuesResponse inputDataRespons, List<String> puljeSpreadsheetNames) {
             int sheetIndex = puljeSpreadsheetNames.indexOf(spreadSheetName);
             ValueRange specificSheetData = inputDataRespons.getValueRanges().get(sheetIndex);
@@ -50,26 +75,30 @@ public class ManageData {
     }
 
     public Pulje getPulje(String puljeName) {
+
         Optional<Pulje> pulje = puljer.stream().filter(p -> p.getName().equals(puljeName)).findFirst();
+
         if (pulje.isPresent())
             return pulje.get();
+
         throw new IllegalArgumentException("cant find pulje: " + puljeName);
-
     }
 
-    public void setComparatorAndSort(Pulje pulje, Comparator<Lifter> comparator) {
-        pulje.setComparatorAndSort(comparator);
+    public List<Pulje> getPuljer() {
+        return new ArrayList<>(puljer);
     }
+
 
 
 
     public void updatePuljer() throws IOException {
-        // Merk: dersom sletting, agt til nye eller endring av ark ,å programmet starte på nytt. 
-        // Håndtering av dette ville gitt extra request hvert 5 sek
+
         BatchGetValuesResponse inputDataRespons = GoogleDockReaderAndWriter.getMultipleSheetInputData(puljeSpreadsheetNames);
+
         puljer.forEach(pulje -> {
             String spreadSheetName = pulje.getName();
             List<List<Object>> values = extractValues(spreadSheetName, inputDataRespons, puljeSpreadsheetNames);
+
             try {
                 pulje.updateResults(values);
             } catch (IllegalNumberOfLiftersException e) {

@@ -10,9 +10,13 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AddSheetRequest;
 import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
+import com.google.api.services.sheets.v4.model.Request;
 import com.google.api.services.sheets.v4.model.Sheet;
+import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
@@ -89,8 +93,18 @@ public class GoogleDockReaderAndWriter {
 
     public static List<String> getInputSpreadsheetNames() throws IOException, GeneralSecurityException {
 
-
         Spreadsheet sp = sheetsService.spreadsheets().get(SPREADSHEET_ID_PLOTTING).execute();
+        List<Sheet> sheets = sp.getSheets();
+        List<String> sheetNames = sheets.stream().map(
+            sheet -> sheet.getProperties().getTitle())
+            .collect(Collectors.toList());
+    
+        return sheetNames;
+    }
+
+    public static List<String> getOutputSpreadsheetNames() throws IOException, GeneralSecurityException {
+
+        Spreadsheet sp = sheetsService.spreadsheets().get(SPREADSHEET_ID_READING).execute();
         List<Sheet> sheets = sp.getSheets();
         List<String> sheetNames = sheets.stream().map(
             sheet -> sheet.getProperties().getTitle())
@@ -170,6 +184,28 @@ public class GoogleDockReaderAndWriter {
         sheetsService.spreadsheets().values()
             .batchUpdate(spreadsheetId, batchBody)
             .execute();
+    }
+
+    public static void createNewSheetsOutput(List<String> sheetNames) throws IOException {
+        AddSheetRequest addSheetRequest = new AddSheetRequest();
+        SheetProperties sheetProperties = new SheetProperties();
+
+        List<Request> requests = new ArrayList<>();
+
+        for (String newSheetName : sheetNames) {
+            sheetProperties.setTitle(newSheetName);
+            addSheetRequest.setProperties(sheetProperties);
+
+            Request request = new Request();
+            request.setAddSheet(addSheetRequest);
+
+            requests.add(request);
+        }
+
+        BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest();
+        batchUpdateRequest.setRequests(requests);
+
+        sheetsService.spreadsheets().batchUpdate(SPREADSHEET_ID_READING, batchUpdateRequest).execute();
     }
      
     

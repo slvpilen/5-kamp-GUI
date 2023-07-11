@@ -251,8 +251,16 @@ public class Lifter {
         if (type.equals("nodvendigForAaTaLedelsen"))
             return nodvendigForAaTaLedelsen;
 
-        // samme for rank
-        // samme for maa ha for å ta ledelsen     
+        if(type.equals("beste rykk")) {
+            Ovelse rykk = getOvelse("rykk");
+            return rykk.getBesteResultat();
+        }
+
+        if(type.equals("beste stot")) {
+            Ovelse stot = getOvelse("stot");
+            return stot.getBesteResultat();
+        }
+
         return hentLofterInfo(type, this.sheetLine);
     }
 
@@ -261,7 +269,7 @@ public class Lifter {
 
         boolean validType = Settings.rekkefolgeKolonnerInput.contains(type);
         if (!validType)
-            throw new IllegalArgumentException("type : " + type + "er ikke en gyldig type.");
+            throw new IllegalArgumentException("type : " + type + " er ikke en gyldig type.");
 
         int index = Settings.rekkefolgeKolonnerInput.indexOf(type);
 
