@@ -17,6 +17,8 @@ public class Ovelse {
     private double forsok2;
     private double forsok3;
 
+    private boolean fullfort;
+
     private double poeng;
     protected double besteResultat;
 
@@ -25,6 +27,7 @@ public class Ovelse {
         validateInput(navn, forsok);
 
         this.navn = navn;
+        this.fullfort = false;
         updateBesteResultatOgAlleForsok(forsok, lifter);
     }
     
@@ -122,7 +125,10 @@ public class Ovelse {
         if (!anyForsok(sprint40Forsok))
             return;
 
-        sprint40Forsok.forEach(sprint40 -> checkNumberOfDesimal(sprint40));
+        
+        sprint40Forsok.forEach(sprint40 -> {
+            if (sprint40!= null) 
+                checkNumberOfDesimal(sprint40);});
 
     }
 
@@ -137,6 +143,7 @@ public class Ovelse {
     public void updateBesteResultatOgAlleForsok(List<Object> forsok, Lifter lifter) {
         this.lifter = lifter;
         validateInput(navn, forsok);
+
 
         boolean isLoft = navn.equals("rykk") || navn.equals("stot");
         boolean istreHopp = navn.equals("3-hopp");
@@ -160,21 +167,48 @@ public class Ovelse {
             forsok2 = convertObjToDouble(forsok.get(1), lifter);
         }
 
+        updateFullfort();
         updateBesteResultatForLift();
+    }
+
+
+
+    private void updateFullfort() {
+        if (forsok1==0 || forsok2==0) {
+            this.fullfort = false;
+            return;
+        }
+
+        boolean isSprint40 = navn.equals("40-meter");
+        if (isSprint40) {
+            this.fullfort = true;
+            return;
+        }
+
+        if (forsok3==0) 
+            this.fullfort= false;
+        else
+            this.fullfort = true;
+
     }
 
     private void updateBesteResultatForLift() {
         List<Double> alleForsok = getForsok();
+        double besteResultat;
         if (navn.equals("40-meter")) {
-            if (alleForsok.get(0)<alleForsok.get(1) && alleForsok.get(0)>0.5)
-                this.besteResultat = alleForsok.get(0);
+
+            if (alleForsok.get(0)<alleForsok.get(1) || alleForsok.get(1)<1){
+                besteResultat = alleForsok.get(0);
+            }
             else
-                this.besteResultat = alleForsok.get(1);
-        }
-        else {
+                besteResultat = alleForsok.get(1);
+        } else {
             alleForsok.sort((a,b) -> b.compareTo(a));
-            this.besteResultat =  alleForsok.get(0);
+            besteResultat =  alleForsok.get(0);
         }
+
+        this.besteResultat = Math.max(besteResultat, 0);
+        
     }
 
     public double getBesteResultat() {
@@ -220,6 +254,10 @@ public class Ovelse {
             try {
                 return Double.valueOf((String) obj);
             } catch (NumberFormatException e) {
+                String objStreng = (String) obj;
+                if (objStreng.length()==1) // anntar at det er "-", men contains fungerer ikke...
+                    return -1;
+
                 lifter.addErrorMessage(obj + " kan ikke konverteres til et flyttall");
                 return 0;
             }
@@ -245,7 +283,7 @@ public class Ovelse {
                     return convertToNegative((String) obj);
                 } catch (NumberFormatException exception){
                     lifter.addErrorMessage(obj + " kan ikke konverteres til et heltall");
-                    return 0;
+                    return -1;
                 }
             }
 
@@ -265,6 +303,10 @@ public class Ovelse {
 
     public String toString() {
         return "{ovelse: " + this.navn +  " resultat: " + besteResultat + "}";
+    }
+
+    public boolean isUnderkjennt() {
+        return fullfort && besteResultat==0;
     }
 
 }

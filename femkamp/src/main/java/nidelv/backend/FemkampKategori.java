@@ -51,6 +51,13 @@ public class FemkampKategori {
         lifters.sort(comparator);
 
         double lederScore = lifters.get(0).getPoeng();
+        double andreScore = 0;
+        double tredjeScore = 0;
+        if (lifters.size()>1)
+            andreScore = lifters.get(1).getPoeng();
+
+        if (lifters.size()>2)
+            tredjeScore = lifters.get(2).getPoeng();
 
         int rank = 1;
         Lifter lifter = lifters.get(0);
@@ -61,7 +68,14 @@ public class FemkampKategori {
             lifter = lifters.get(i);
             Lifter previusLifter = lifters.get(i-1);
 
+            if (lifter.isUnderkjennt()) {
+                lifter.setNodvendigForLedelsen(-1.0);
+                lifter.setRank(1000);
+                continue;
+            }
+
             boolean equalScore = previusLifter.getPoeng() == lifter.getPoeng(); 
+
             if (equalScore)
                 lifter.setRank(rank);
 
@@ -71,11 +85,24 @@ public class FemkampKategori {
             }
             
             lifter.oppdaterNodvendigForLedelsen(lederScore);
+            lifter.oppdaterNodvendigForAndre(andreScore);
+            lifter.oppdaterNodvendigForTredje(tredjeScore);
         }
     }
 
     public ArrayList<Lifter> getLifters() {
         return new ArrayList<>(this.lifters);
+    }
+
+    @Override
+    public String toString() {
+        String kjonn;
+        if (lifters.get(0).getKjonn()=='M')
+            kjonn = "Gutter ";
+        else    
+            kjonn = "Jenter ";
+
+        return kjonn + getName();
     }
 
     public static class IllegalFemkampNavnException extends IllegalArgumentException {

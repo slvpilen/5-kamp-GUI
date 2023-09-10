@@ -60,10 +60,11 @@ public class ProgrammRunner {
         lofterLines.add(new ArrayList<Object>(Settings.rekkefolgeKolonnerOutput));
 
         for (FemkampKategori femkampKategori : pulje.getFemkampKategoris()) {
+            lofterLines.add(Arrays.asList(femkampKategori.toString()));  
 
             ArrayList<Lifter> lifters = femkampKategori.getLifters();  
             lifters.forEach(lofter -> lofterLines.add(lofter.getOutput())); 
-            lofterLines.add(Arrays.asList(""));         
+            lofterLines.add(Arrays.asList(""));      
        }
 
         // legger til output data til readonly filen før skriving

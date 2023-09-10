@@ -172,7 +172,7 @@ public class GoogleDockReaderAndWriter {
 
 
     public static void addOutputSheetData(String sheetName, List<List<Object>> dataToWrite) throws IOException {
-        String cellStartPlotting = "A1";
+        String cellStartPlotting = "A2"; //starting cell
         addValueRangeToSheetData(outPutSheetsData, sheetName ,cellStartPlotting, dataToWrite);
     }
 

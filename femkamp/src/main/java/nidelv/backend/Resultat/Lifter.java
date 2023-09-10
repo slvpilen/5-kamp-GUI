@@ -25,8 +25,9 @@ public class Lifter {
 
     private String errorMessage;
 
+    private boolean underkjenntOvelse;
     private String currentOvelse; // oppdateres fra pulje (ikke laget ennå)
-    private Double nodvendigForLedelsen;
+    private Double nodvendigForLedelsen, nodvendigForAndre, nodvendigForTredje;
 
 
     public Lifter(final String pulje, int linjeId, List<Object> sheetLine, String currentOvelse) {
@@ -40,6 +41,7 @@ public class Lifter {
         updateLifterAttributesFromSheetLine(sheetLine);
 
         createOvelser();
+        updateUnderkjent();
         updatePoeng();
     }
 
@@ -82,7 +84,7 @@ public class Lifter {
         if (this.kategori.length() == 2)
             this.kjonn = this.kategori.charAt(1);
 
-        this.femkampkategoriNavn = convertToString(hentLofterInfo("femkampkategori"));
+        this.femkampkategoriNavn = convertToString(hentLofterInfo("kat 5-kamp"));
         this.lag = convertToString(hentLofterInfo("lag"));
 
     }
@@ -93,6 +95,18 @@ public class Lifter {
         standarizeSheetLine(sheetLine);
         updateLifterAttributesFromSheetLine(sheetLine); 
         updateOvelserOgPoeng();
+        updateUnderkjent();
+    }
+
+    private void updateUnderkjent() {
+        if (isAnyUnderkjennt())
+            this.underkjenntOvelse = true;
+        else
+            this.underkjenntOvelse = false;
+    }
+
+    public boolean isAnyUnderkjennt() {
+        return ovelser.stream().anyMatch(Ovelse::isUnderkjennt);
     }
 
 
@@ -184,7 +198,8 @@ public class Lifter {
 
         for (String ovelseNavn : Ovelse.validOvelser) {
             List<Object> alleForsok = finnAlleForsok(ovelseNavn);
-            ovelser.add(new Ovelse(ovelseNavn, alleForsok, this));
+            Ovelse ovelse = new Ovelse(ovelseNavn, alleForsok, this);
+            ovelser.add(ovelse);
         }
     }
 
@@ -243,20 +258,57 @@ public class Lifter {
 
 
     private Object hentLofterInfo(String type) {
-        if (type.equals("poeng"))
+        type = type.toLowerCase();
+        if (type.equals("poeng")) {
+            if (isUnderkjennt())
+                return "--";
              return poeng;
+        }
 
-        if (type.equals("rank"))
+        if (type.equals("rank")) {
+            if (isUnderkjennt())
+                return "--";
+            if (getPoeng() == 0)
+                return "";
             return rank;
+        }
         
-        if (type.equals("nodevendig for ledelse"))
+        if (type.equals("1. plass")) {
+            if (isUnderkjennt())
+                return "--";
+            if (nodvendigForLedelsen == null || nodvendigForLedelsen==0)
+                return "";
             return nodvendigForLedelsen;
+        }
 
-        if (Ovelse.validOvelser.contains(type)) {
+        if (type.equals("2. plass")) {
+            if (isUnderkjennt())
+                return "--";
+            if (nodvendigForAndre == null || nodvendigForAndre==0 || getRank()<=2)
+                return "";
+            return nodvendigForAndre;
+        }
+
+        if (type.equals("3. plass")) {
+            if (isUnderkjennt())
+                return "--";
+            if (nodvendigForTredje == null || nodvendigForTredje==0 || getRank()<=3)
+                return "";
+            return nodvendigForTredje;
+        }
+        if (type.equals("støt"))
+            type = "stot";
+        boolean isOvelse = Ovelse.validOvelser.contains(type);
+        if (isOvelse) {
             Ovelse ovelse = getOvelse(type);
             double besteResultet = ovelse.getBesteResultat();
+
+            if (ovelse.isUnderkjennt())
+                return "--";
+
             if (besteResultet==0)
                 return "";
+
             return besteResultet;
         }
 
@@ -300,6 +352,16 @@ public class Lifter {
         Ovelse ovelse = getOvelse(currentOvelse);
         this.nodvendigForLedelsen = Poengberegning.calculateHvaSomTrengsForLedelse(ovelse, this, lederScore);
     }
+
+    public void oppdaterNodvendigForAndre(double andreScore) {
+        Ovelse ovelse = getOvelse(currentOvelse);
+        this.nodvendigForAndre = Poengberegning.calculateHvaSomTrengsForLedelse(ovelse, this, andreScore);
+    }
+
+    public void oppdaterNodvendigForTredje(double tredjeScore) {
+        Ovelse ovelse = getOvelse(currentOvelse);
+        this.nodvendigForTredje = Poengberegning.calculateHvaSomTrengsForLedelse(ovelse, this, tredjeScore);
+    }
     
 
     public String getPulje() {
@@ -339,6 +401,8 @@ public class Lifter {
     }
 
     public double getPoeng() {
+        if (isUnderkjennt())
+            return -1; // TODO: isteden for denne sjekken fix Comparatoren til å sortere alle isUnderkjennt sist
         return poeng;
     }
 
@@ -370,6 +434,9 @@ public class Lifter {
         this.nodvendigForLedelsen = resultat;
     }
 
+    public boolean isUnderkjennt() {
+        return underkjenntOvelse;
+    }
 
     @Override
     public String toString() {

@@ -14,7 +14,9 @@ import nidelv.backend.Resultat.Ovelse;
 public class Pulje {
 
     private final String puljeName;
-    private Comparator<Lifter> comparator;
+    private static final Comparator<Lifter> comparator = Comparator
+            .comparing(Lifter::getPoeng, Comparator.reverseOrder()); // Sort by getPoeng in descending order
+
     private List<List<Object>> values;
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
     private List<Object> errorMeldinger;
@@ -24,7 +26,6 @@ public class Pulje {
         this.puljeName = puljeName;
         this.values = values; 
         createLifters();       
-        this.comparator = Comparator.comparingDouble(Lifter::getPoeng).reversed();
         sortLifters();
     }
 
@@ -59,11 +60,11 @@ public class Pulje {
     }
 
     private void createLifter(int lifterid, String currentOvelse) {
-                        Lifter newLifter = new Lifter(puljeName, lifterid, values.get(lifterid), currentOvelse);
-                femkampKategoris.get(femkampKategoris.size()-1).addLifter(newLifter);
+        Lifter newLifter = new Lifter(puljeName, lifterid, values.get(lifterid), currentOvelse);
+            femkampKategoris.get(femkampKategoris.size()-1).addLifter(newLifter);
 
-                String errorMessage = newLifter.getErrorMessage();
-                this.errorMeldinger.add(errorMessage);
+        String errorMessage = newLifter.getErrorMessage();
+        this.errorMeldinger.add(errorMessage);
     }
 
 
