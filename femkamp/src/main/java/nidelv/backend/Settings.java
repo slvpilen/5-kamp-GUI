@@ -21,7 +21,7 @@ public class Settings {
         "kategori", "kat 5-kamp", "fodselsdato", "navn", "lag", "rykk1", "rykk2", "rykk3", "stot1", 
         "stot2", "stot3", "3-hopp1", "3-hopp2", "3-hopp3", "kule1", "kule2", "kule3", "40-meter1", "40-meter2");
 // kat 5-kamp
-    public final static int antallRaderSomLeses = 25;
+    public final static int antallRaderSomLeses = 21;
 
 
     public final static List<String> rekkefolgeKolonnerOutput = Arrays.asList("Navn", "Klubb", "Kat 5-kamp",

@@ -20,6 +20,7 @@ public class Pulje {
     private List<List<Object>> values;
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
     private List<Object> errorMeldinger;
+    private String lastCurrentOvelse;
 
 
     public Pulje(final String puljeName, List<List<Object>> values) throws IOException {
@@ -137,7 +138,7 @@ public class Pulje {
     }
 
 
-
+    // Dersom tvetydig hva som er current ovelse, returneres forrige current ovelse
     private String extractCurrentOvelse(List<List<Object>> values) {
 
         List<Object> currentOvelseLine = values.get(0);
@@ -148,7 +149,8 @@ public class Pulje {
         // validering
         if (antallForekomster!= 1) {
             errorMeldinger.add("feil antall current ovelse!");
-            return null;
+
+            return lastCurrentOvelse;
         }
         
         int indexTilCurrentOvelse = currentOvelseLine.indexOf(tegn);
@@ -156,6 +158,9 @@ public class Pulje {
         String currentOvelseNavn = Settings.rekkefolgeKolonnerInput.get(indexTilCurrentOvelse);
 
         currentOvelseNavn = convertToValidOvelse(currentOvelseNavn);
+
+        // TODO: oppdatering i en extract metode er utydelig sideeffekt, flytt eller bytt navn
+        this.lastCurrentOvelse = currentOvelseNavn;
 
         return currentOvelseNavn;
     }
