@@ -81,8 +81,12 @@ public class Lifter {
         this.kroppsvekt = kroppsvekt;
         this.kategori = kategori;
 
-        if (this.kategori.length() == 2)
-            this.kjonn = this.kategori.charAt(1);
+        if (this.kategori.length() == 2) {
+            if (Arrays.asList('M', 'K').contains(kategori.charAt(1)))
+                this.kjonn = this.kategori.charAt(1);
+            else
+                this.kjonn = this.kategori.charAt(0);
+        }
 
         this.femkampkategoriNavn = convertToString(hentLofterInfo("kat 5-kamp"));
         this.lag = convertToString(hentLofterInfo("lag"));
@@ -168,7 +172,7 @@ public class Lifter {
     }
 
     private void validateKjonn(String lofterNavn, String kategoriStreng) {
-        boolean gyldigKjonn = kategoriStreng.length() == 2 && Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1));
+        boolean gyldigKjonn = kategoriStreng.length() == 2 && (Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1)) || Arrays.asList('M', 'K').contains(kategoriStreng.charAt(0)));
 
         if (!gyldigKjonn)
             addErrorMessage(" er ugyldig, slutter ikke på M eller K");  

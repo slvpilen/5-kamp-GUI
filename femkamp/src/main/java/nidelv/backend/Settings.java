@@ -25,6 +25,6 @@ public class Settings {
 
 
     public final static List<String> rekkefolgeKolonnerOutput = Arrays.asList("Navn", "Klubb", "Kat 5-kamp",
-        "Rykk", "Støt", "3-hopp", "Kule", "40-meter", "Poeng", "Rank", "1. plass", "2. plass", "3. plass");
+        "Rykk", "Støt", "40-meter","Kule", "3-hopp", "Poeng", "Rank", "1. plass", "2. plass", "3. plass");
 
 }

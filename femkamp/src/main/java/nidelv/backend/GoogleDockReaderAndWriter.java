@@ -266,10 +266,11 @@ public class GoogleDockReaderAndWriter {
 
         BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest();
         batchUpdateRequest.setRequests(requests);
+        
 
         sheetsService.spreadsheets().batchUpdate(SPREADSHEET_ID_READING, batchUpdateRequest).execute();
     }
-     
+      
     
     
 
