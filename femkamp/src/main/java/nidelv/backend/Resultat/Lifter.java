@@ -252,14 +252,12 @@ public class Lifter {
         if (type.equals("nodevendig for ledelse"))
             return nodvendigForLedelsen;
 
-        if(type.equals("rykk")) {
-            Ovelse rykk = getOvelse("rykk");
-            return rykk.getBesteResultat();
-        }
-
-        if(type.equals("stot")) {
-            Ovelse stot = getOvelse("stot");
-            return stot.getBesteResultat();
+        if (Ovelse.validOvelser.contains(type)) {
+            Ovelse ovelse = getOvelse(type);
+            double besteResultet = ovelse.getBesteResultat();
+            if (besteResultet==0)
+                return "";
+            return besteResultet;
         }
 
         if(type.equals("klubb")) {

@@ -6,16 +6,16 @@ import java.util.List;
 
 
 public class Ovelse {
-    public static final Collection<String> validOvelser = Arrays.asList("rykk", "stot", "treHopp", "kuleKast", "40Sprint");
+    public static final Collection<String> validOvelser = Arrays.asList("rykk", "stot", "3-hopp", "kule", "40-meter");
 
     protected final String navn;
     private Lifter lifter;
 
     // kun løft bruker alle forsøk (ikke 3-kamp øvelsene)
     // TODO kunne vørt bedre å lage en klasse pr øvelse. Evt også flytte Poengberegning til ovelse i den klassen også
-    private int forsok1;
-    private int forsok2;
-    private int forsok3;
+    private double forsok1;
+    private double forsok2;
+    private double forsok3;
 
     private double poeng;
     protected double besteResultat;
@@ -33,17 +33,17 @@ public class Ovelse {
             throw new IllegalArgumentException(navn + " er ikke en valid ovelsenavn");
         
         boolean isLoft = navn.contains("rykk") || navn.contains("stot");
-        boolean isTreHopp = navn.equals("treHopp");
-        boolean isKuleKast = navn.equals("kuleKast");
-        boolean isSprint40 = navn.equals("40Sprint");
+        boolean isTreHopp = navn.equals("3-hopp");
+        boolean isKuleKast = navn.equals("kule");
+        boolean isSprint40 = navn.equals("40-meter");
 
         if (isLoft) 
             validateLoft(forsok);
 
-        if (isTreHopp || isKuleKast) 
+        else if (isTreHopp || isKuleKast) 
             valdateHoppOgKast(forsok);
 
-        if (isSprint40)
+        else if (isSprint40)
             validateSprint40(forsok);
     }
 
@@ -60,7 +60,6 @@ public class Ovelse {
         if (!riktigForsokRekkefolge) {
             lifter.addErrorMessage("1. loft før 2. løft og 2. før 3. løft");
         }
-
 
         try{
             forsok.forEach(f -> convertObjToInt(f, lifter));
@@ -98,7 +97,7 @@ public class Ovelse {
 
     private void valdateHoppOgKast(List<Object> trekampForsok) {
 
-        boolean feilAntallForsok = trekampForsok.size() != 1;
+        boolean feilAntallForsok = trekampForsok.size() != 3;
         if (feilAntallForsok)
             throw new IllegalArgumentException("Feil antall forsok");
 
@@ -116,7 +115,7 @@ public class Ovelse {
 
     private void validateSprint40(List<Object> sprint40Forsok) {
 
-        boolean feilAntallForsok = sprint40Forsok.size() != 1;
+        boolean feilAntallForsok = sprint40Forsok.size() != 2;
         if (feilAntallForsok)
             throw new IllegalArgumentException("Feil antall forsok");
 
@@ -140,28 +139,42 @@ public class Ovelse {
         validateInput(navn, forsok);
 
         boolean isLoft = navn.equals("rykk") || navn.equals("stot");
-        boolean istreHopp = navn.equals("treHopp");
-        boolean iskuleKast = navn.equals("kuleKast");
-        boolean isSprint40 = navn.equals("40Sprint");
+        boolean istreHopp = navn.equals("3-hopp");
+        boolean iskuleKast = navn.equals("kule");
+        boolean isSprint40 = navn.equals("40-meter");
 
         if (isLoft) {
             forsok1 = convertObjToInt(forsok.get(0), lifter);
             forsok2 = convertObjToInt(forsok.get(1), lifter);
             forsok3 = convertObjToInt(forsok.get(2), lifter);
-            updateBesteResultatForLift();
+        }
+
+        if (iskuleKast || istreHopp) {
+            forsok1 = convertObjToDouble(forsok.get(0), lifter);
+            forsok2 = convertObjToDouble(forsok.get(1), lifter);
+            forsok3 = convertObjToDouble(forsok.get(2), lifter);
         }
             
-        else if (istreHopp || 
-            iskuleKast ||
-            isSprint40)
-            this.besteResultat = convertObjToDouble(forsok.get(0), lifter);
+        else if (isSprint40){
+            forsok1 = convertObjToDouble(forsok.get(0), lifter);
+            forsok2 = convertObjToDouble(forsok.get(1), lifter);
+        }
+
+        updateBesteResultatForLift();
     }
 
     private void updateBesteResultatForLift() {
-        List<Integer> alleForsok = getForsok();
-        alleForsok.sort((a,b) -> b-a);
-        
-        this.besteResultat =  alleForsok.get(0);
+        List<Double> alleForsok = getForsok();
+        if (navn.equals("40-meter")) {
+            if (alleForsok.get(0)<alleForsok.get(1) && alleForsok.get(0)>0.5)
+                this.besteResultat = alleForsok.get(0);
+            else
+                this.besteResultat = alleForsok.get(1);
+        }
+        else {
+            alleForsok.sort((a,b) -> b.compareTo(a));
+            this.besteResultat =  alleForsok.get(0);
+        }
     }
 
     public double getBesteResultat() {
@@ -176,7 +189,10 @@ public class Ovelse {
         return poeng;
     }
 
-    public List<Integer> getForsok() {
+    public List<Double> getForsok() {
+        if (navn.equals("40-meter"))
+            return Arrays.asList(forsok1, forsok2);
+            
         return Arrays.asList(forsok1, forsok2, forsok3);
     }
 

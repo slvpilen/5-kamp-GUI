@@ -3,17 +3,14 @@ package nidelv.backend;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import nidelv.backend.Pulje.IllegalNumberOfLiftersException;
-import nidelv.backend.Resultat.Lifter;
 
 public class ManageData {
     

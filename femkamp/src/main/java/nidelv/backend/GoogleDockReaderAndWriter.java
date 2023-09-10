@@ -133,7 +133,7 @@ public class GoogleDockReaderAndWriter {
     public static BatchGetValuesResponse getMultipleSheetInputData(List<String> sheetNames) throws IOException {
         List<String> ranges = new ArrayList<>();
         for (String sheetName : sheetNames) {
-            String range = sheetName + "!A2:P" + String.valueOf(Settings.antallRaderSomLeses);
+            String range = sheetName + "!A3:U" + String.valueOf(Settings.antallRaderSomLeses);
             ranges.add(range);
         }
         return sheetsService.spreadsheets().values()

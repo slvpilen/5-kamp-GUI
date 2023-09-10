@@ -48,7 +48,6 @@ public class FemkampKategori {
     // TODO : dårlig og langt navn, rewrite!
     // TODO: flytt comparatoren his, så slipper å ta den inn som parameter (static)!
     public void sortLiftersAndUpdateRankAndPoengForLedelse(Comparator<Lifter> comparator) {
-        // TODO ved lik poeng, skal rangers etter startnummer?
         lifters.sort(comparator);
 
         double lederScore = lifters.get(0).getPoeng();
@@ -70,11 +69,6 @@ public class FemkampKategori {
                 rank++;
                 lifter.setRank(rank);
             }
-            
-
-            // boolean besteLofter = i==0;
-            // if (besteLofter)
-            //     lifter.setNodvendigForLedelsen(null);
             
             lifter.oppdaterNodvendigForLedelsen(lederScore);
         }
