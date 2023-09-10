@@ -66,6 +66,7 @@ public class Lifter {
         String lofterNavn = ValidateAndExtractNavn(sheetLine);
         this.navn = lofterNavn;
 
+
         // validating femkampkategori
         if (femkampKategori!= null && !this.femkampkategoriNavn.equals(femkampKategori.getName()))
             addErrorMessage("Feil femkampkategori for: " + lofterNavn);
@@ -251,14 +252,18 @@ public class Lifter {
         if (type.equals("nodevendig for ledelse"))
             return nodvendigForLedelsen;
 
-        if(type.equals("beste rykk")) {
+        if(type.equals("rykk")) {
             Ovelse rykk = getOvelse("rykk");
             return rykk.getBesteResultat();
         }
 
-        if(type.equals("beste stot")) {
+        if(type.equals("stot")) {
             Ovelse stot = getOvelse("stot");
             return stot.getBesteResultat();
+        }
+
+        if(type.equals("klubb")) {
+            return lag;  // TODO: endre denne attributten til klubb
         }
 
         return hentLofterInfo(type, this.sheetLine);
@@ -349,6 +354,10 @@ public class Lifter {
 
     public String getErrorMessage() {
         return this.errorMessage;
+    }
+
+    public int getRank() {
+        return rank;
     }
 
     public Ovelse getOvelse(String ovelseNavn) {

@@ -44,22 +44,39 @@ public class FemkampKategori {
         return lifters.size();
     }
 
+    // TODO!! denne blinket ved annen rank setting; dvs den kjører to ganger i starten
     // TODO : dårlig og langt navn, rewrite!
+    // TODO: flytt comparatoren his, så slipper å ta den inn som parameter (static)!
     public void sortLiftersAndUpdateRankAndPoengForLedelse(Comparator<Lifter> comparator) {
         // TODO ved lik poeng, skal rangers etter startnummer?
         lifters.sort(comparator);
 
         double lederScore = lifters.get(0).getPoeng();
 
-        for (int i=0 ; i<lifters.size() ; i++) {
-            Lifter lifter = lifters.get(i);
-            lifter.setRank(i+1);
+        int rank = 1;
+        Lifter lifter = lifters.get(0);
 
-            boolean besteLofter = i==0;
-            if (besteLofter)
-                lifter.setNodvendigForLedelsen(null);
-            else
-                lifter.oppdaterNodvendigForLedelsen(lederScore);
+        lifter.setRank(rank);
+        lifter.setNodvendigForLedelsen(null);
+        for (int i=1 ; i<lifters.size() ; i++) {
+            lifter = lifters.get(i);
+            Lifter previusLifter = lifters.get(i-1);
+
+            boolean equalScore = previusLifter.getPoeng() == lifter.getPoeng(); 
+            if (equalScore)
+                lifter.setRank(rank);
+
+            else {
+                rank++;
+                lifter.setRank(rank);
+            }
+            
+
+            // boolean besteLofter = i==0;
+            // if (besteLofter)
+            //     lifter.setNodvendigForLedelsen(null);
+            
+            lifter.oppdaterNodvendigForLedelsen(lederScore);
         }
     }
 

@@ -24,9 +24,9 @@ public class Settings {
     public final static int antallRaderSomLeses = 16;
 
 
-    public final static List<String> rekkefolgeKolonnerOutput = Arrays.asList("navn", "femkampkategori",
+    public final static List<String> rekkefolgeKolonnerOutput = Arrays.asList("navn", "klubb", "femkampkategori",
 
         //"rykk1", "rykk2", "rykk3", "stot1", "stot2", "stot3", "treHopp", "kuleKast", "40Sprint", "poeng", "rank", "nodevendig for ledelse");
-        "beste rykk", "beste stot", "treHopp", "kuleKast", "40Sprint", "poeng", "rank", "nodevendig for ledelse");
+        "rykk", "stot", "treHopp", "kuleKast", "40Sprint", "poeng", "rank", "nodevendig for ledelse");
 
 }
