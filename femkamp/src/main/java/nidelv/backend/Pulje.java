@@ -21,6 +21,7 @@ public class Pulje {
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
     private List<Object> errorMeldinger;
     private String lastCurrentOvelse;
+    private String currentOvelse = "rykk";
 
 
     public Pulje(final String puljeName, List<List<Object>> values) throws IOException {
@@ -41,7 +42,7 @@ public class Pulje {
             
         femkampKategoris.add(new FemkampKategori());
 
-        String currentOvelse = extractCurrentOvelse(values);
+        currentOvelse = extractCurrentOvelse(values);
 
         int lifterid;
         for (int i = 1; i < values.size(); i++) {
@@ -93,7 +94,7 @@ public class Pulje {
         if (values.size()-1 != numberOfLiftersInPulje) 
             throw new IllegalNumberOfLiftersException("feil antall løftere i dock og i programmet"); 
         
-        String currentOvelse = extractCurrentOvelse(values);
+        currentOvelse = extractCurrentOvelse(values);
 
         updateAndvaluateNumbersOfLifters(currentOvelse);
 
@@ -202,6 +203,10 @@ public class Pulje {
     public List<FemkampKategori> getFemkampKategoris() {
         // burde returnere ny liste for å hndre yttre påvirkning
         return this.femkampKategoris;
+    }
+
+    public String getCurrentOvelse() {
+        return currentOvelse;
     }
 
     

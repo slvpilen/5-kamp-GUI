@@ -305,6 +305,10 @@ public class Ovelse {
         return "{ovelse: " + this.navn +  " resultat: " + besteResultat + "}";
     }
 
+    public boolean isFullfort() {
+        return fullfort;
+    }
+
     public boolean isUnderkjennt() {
         return fullfort && besteResultat==0;
     }

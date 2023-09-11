@@ -57,7 +57,25 @@ public class ProgrammRunner {
 
     private void addLinesToOutPut(Pulje pulje) throws IOException {
         List<List<Object>> lofterLines = new ArrayList<>();
-        lofterLines.add(new ArrayList<Object>(Settings.rekkefolgeKolonnerOutput));
+        // TODO: rewrite: ############################################
+        String currentOvelse = pulje.getCurrentOvelse();
+        if (currentOvelse.equals("stot"))
+            currentOvelse = "støt";
+        int indexTilCurrentOvelse = -1;  // default to -1 (not found)
+        for (int i = 0; i < Settings.rekkefolgeKolonnerOutput.size(); i++) {
+            if (Settings.rekkefolgeKolonnerOutput.get(i).equalsIgnoreCase(currentOvelse)) {
+                indexTilCurrentOvelse = i;
+                break;
+            }
+        }                       
+        ArrayList<Object> outputLineOne = new ArrayList<Object>(Settings.rekkefolgeKolonnerOutput);
+        String obj = (String) outputLineOne.get(indexTilCurrentOvelse);
+        obj = "*" + obj;
+        // #####################################
+        outputLineOne.set(indexTilCurrentOvelse, obj);
+
+        //lofterLines.add(new ArrayList<Object>(Settings.rekkefolgeKolonnerOutput));
+        lofterLines.add(outputLineOne);
 
         for (FemkampKategori femkampKategori : pulje.getFemkampKategoris()) {
             lofterLines.add(Arrays.asList(femkampKategori.toString()));  

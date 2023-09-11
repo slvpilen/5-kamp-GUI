@@ -304,15 +304,23 @@ public class Lifter {
             type = "stot";
         boolean isOvelse = Ovelse.validOvelser.contains(type);
         if (isOvelse) {
+            String kodeordForGronn = "'";
             Ovelse ovelse = getOvelse(type);
             double besteResultet = ovelse.getBesteResultat();
 
             if (ovelse.isUnderkjennt())
                 return "--";
 
-            if (besteResultet==0)
+            if (besteResultet==0) {
+                if (ovelse.isFullfort())
+                    return kodeordForGronn + "";
                 return "";
-
+            }
+            if (ovelse.isFullfort()) {
+                if (type.equals("stot") || type.equals("rykk"))
+                    return kodeordForGronn + (int)besteResultet;
+                return kodeordForGronn + besteResultet;
+            }
             return besteResultet;
         }
 
