@@ -61,7 +61,7 @@ public class ProgrammRunner {
         String currentOvelse = pulje.getCurrentOvelse();
         if (currentOvelse.equals("stot"))
             currentOvelse = "støt";
-        int indexTilCurrentOvelse = -1;  // default to -1 (not found)
+        int indexTilCurrentOvelse = 3;  // default to -1 (not found)
         for (int i = 0; i < Settings.rekkefolgeKolonnerOutput.size(); i++) {
             if (Settings.rekkefolgeKolonnerOutput.get(i).equalsIgnoreCase(currentOvelse)) {
                 indexTilCurrentOvelse = i;
@@ -84,6 +84,9 @@ public class ProgrammRunner {
             lifters.forEach(lofter -> lofterLines.add(lofter.getOutput())); 
             lofterLines.add(Arrays.asList(""));      
        }
+       lofterLines.add(Arrays.asList("* = Gjeldende øvelse"));      
+       lofterLines.add(Arrays.asList("Grønn = ingen flere forsøk"));      
+       lofterLines.add(Arrays.asList("Rødt = ingen gyldige forsøk"));      
 
         // legger til output data til readonly filen før skriving
         GoogleDockReaderAndWriter.addOutputSheetData(pulje.getName(), lofterLines);

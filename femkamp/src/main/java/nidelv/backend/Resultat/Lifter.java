@@ -304,7 +304,7 @@ public class Lifter {
             type = "stot";
         boolean isOvelse = Ovelse.validOvelser.contains(type);
         if (isOvelse) {
-            String kodeordForGronn = "'";
+            String kodeordForGronn = "'                                  ";
             Ovelse ovelse = getOvelse(type);
             double besteResultet = ovelse.getBesteResultat();
 
@@ -319,7 +319,9 @@ public class Lifter {
             if (ovelse.isFullfort()) {
                 if (type.equals("stot") || type.equals("rykk"))
                     return kodeordForGronn + (int)besteResultet;
-                return kodeordForGronn + besteResultet;
+                String besteResKomma = String.valueOf(besteResultet);
+                besteResKomma = besteResKomma.replace(".", ",");
+                return kodeordForGronn + besteResKomma;
             }
             return besteResultet;
         }

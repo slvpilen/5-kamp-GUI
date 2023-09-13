@@ -238,6 +238,12 @@ public class Poengberegning {
         return (double) tmp / factor;
     }
 
+    // public static void main(String[] args) {
+
+    //     double poeng = Poengberegning.calculateLofteScore('M', 66.2, 100);
+
+    //     System.out.println(poeng);
+    // }
 
     
 }
