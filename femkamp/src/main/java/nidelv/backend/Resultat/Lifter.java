@@ -1,5 +1,6 @@
 package nidelv.backend.Resultat;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,6 +22,7 @@ public class Lifter {
     private List<Object> sheetLine;
     private double poeng;
     private int rank;
+    private int alder = 0;
     private FemkampKategori femkampKategori;
 
     private String errorMessage;
@@ -75,6 +77,7 @@ public class Lifter {
 
         double kroppsvekt = validateAndExctactKroppsvekt(lofterNavn, sheetLine);
         String kategori = validateAndExtractKategori(lofterNavn, sheetLine);
+        this.alder = ValidateAndExtractAlder(lofterNavn, sheetLine);
 
         setSheetLine(sheetLine);
 
@@ -126,6 +129,40 @@ public class Lifter {
     
         return lofterNavn;
     }
+
+    private int ValidateAndExtractAlder(String lofterNavn, List<Object> sheetLine) {
+        Object fodselsdatoObj = hentLofterInfo("fodselsdato", sheetLine);
+        String fodselsdato = fodselsdatoObj != null ? fodselsdatoObj.toString() : "";
+    
+        if (fodselsdato.isEmpty())
+            addErrorMessage("Mangler fodselsdato");
+    
+        // Verify the format using regex
+        String regex = "^[0-3]?[0-9]\\.[0-1]?[0-9]\\.[0-9]{2}$";
+        if (!fodselsdato.matches(regex)) {
+            addErrorMessage(lofterNavn + " feil med dato på lofter");
+            return -1; // Invalid age value to indicate an error
+        }
+    
+        // Extract the year and compute the age
+        int fodselsaar = Integer.parseInt(fodselsdato.split("\\.")[2]);
+        int currentYear = LocalDate.now().getYear() % 100; // Get last two digits of the current year
+        // If fodselsaar is greater than the current year, assume it's from the 20th century
+        if (fodselsaar > currentYear) {
+            fodselsaar -= 100;  // Adjust for the 20th century
+        }
+        
+        int alder = currentYear - fodselsaar;
+
+        if (alder>100 || alder<3)
+            addErrorMessage(lofterNavn + " har alder på " + alder);
+    
+        return alder;
+    }
+    
+    
+    
+    
 
 
     private void validateteNavn(String navn) {
@@ -434,6 +471,18 @@ public class Lifter {
 
     public int getRank() {
         return rank;
+    }
+
+    public boolean isVeteran() {
+        // contains 35 fordi '+' tegnet kan bytte side
+        if (femkampkategoriNavn!= null && femkampkategoriNavn.contains("35") && alder>34)
+            return true;
+
+        return false;
+    }
+
+    public int getAlder() {
+        return alder;
     }
 
     public Ovelse getOvelse(String ovelseNavn) {

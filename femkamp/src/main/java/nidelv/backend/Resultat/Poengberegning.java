@@ -15,17 +15,17 @@ public class Poengberegning {
         switch (ovelseNavn) {
 
             case "3-hopp":
-                return calculateTreHoppScore(resultat);
+                return calculateTreHoppScore(lifter, resultat);
 
             case "kule":
-                return calculateKulekastScore(lifter.getKjonn(), lifter.getKroppsvekt(),  resultat);
+                return calculateKulekastScore(lifter,  resultat);
 
             case "40-meter":
-                return calculateSprintScore(resultat);
+                return calculateSprintScore(lifter, resultat);
             
             case "rykk":
             case "stot":
-                return calculateLofteScore(lifter.getKjonn(), lifter.getKroppsvekt(), (int) round(resultat,0));
+                return calculateLofteScore(lifter, (int) round(resultat,0));
 
             default:
                 throw new IllegalArgumentException("Invalid ovelse: " + ovelse);
@@ -33,19 +33,24 @@ public class Poengberegning {
     }
 
 
-    private static double calculateTreHoppScore(double lengde) {
+    private static double calculateTreHoppScore(Lifter lifter, double lengde) {
         double score = lengde*20;
+        if (lifter.isVeteran())
+            score*= MeltzerFaber.getMeltzerCoefficient(lifter.getKjonn(), lifter.getAlder());
         return round(score, 2);
     }
 
-    private static double calculateKulekastScore(char kjonn, double kroppsvekt, double lengde) {
+    private static double calculateKulekastScore(Lifter lifter, double lengde) {
         // sinclariek. for menn benyttes for begge kjønn
-        double score = 10 * lengde * sinclaireCoefficient('M', kroppsvekt);
+        
+        double score = 10 * lengde * sinclaireCoefficient('M', lifter.getKroppsvekt());
+        if (lifter.isVeteran()) 
+            score*= MeltzerFaber.getMeltzerCoefficient(lifter.getKjonn(), lifter.getAlder());
         return round(score, 2);
     }
 
 
-    private static int calculateSprintScore(double time) {
+    private static int calculateSprintScore(Lifter lifter, double time) {
         double BASE_TIME = 8.0;
         int BASE_SCORE = 80;
         double TIME_DELTA = 0.1;
@@ -61,20 +66,27 @@ public class Poengberegning {
         if (negativeScore || negativeTime) {
             finalScore = 0;
         }
+        if (lifter.isVeteran())
+            finalScore*= MeltzerFaber.getMeltzerCoefficient(lifter.getKjonn(), lifter.getAlder());
             
         return finalScore;
     }
     
 
-    private static double calculateLofteScore(char kjonn, double kroppsvekt, int weight) {
-        double sinclaire = calculateSinclaire(kjonn, kroppsvekt, weight);
+    private static double calculateLofteScore(Lifter lifter, int weight) {
+        double sinclaire = calculateSinclaire(lifter, weight);
         double femKampLofteScore = sinclaire*1.2;
+
 
         return round(femKampLofteScore, 2);
     }
 
 
-    private static double calculateSinclaire(char kjonn, double kroppsvekt, int weight) {
+    private static double calculateSinclaire(Lifter lifter, int weight) {
+        char kjonn = lifter.getKjonn();
+        double kroppsvekt = lifter.getKroppsvekt();
+        int alder = lifter.getAlder();
+
         boolean missingInfo = !(kjonn=='M' || kjonn=='K') || kroppsvekt<=0 || weight<1;
         if (missingInfo)
             return 0;
@@ -82,8 +94,13 @@ public class Poengberegning {
         boolean negativeWeight = weight<0;
         if (negativeWeight)
             return 0;
-    
+
         double points = weight * sinclaireCoefficient(kjonn, kroppsvekt);
+
+        if (lifter.isVeteran()) 
+            points*= MeltzerFaber.getMeltzerCoefficient(kjonn, alder);
+        
+    
         return round(points, 2);
     }
 
@@ -149,13 +166,13 @@ public class Poengberegning {
     private static double calculateDetSomTrengs(double scoreAaOppnaa, String ovelseNavn, Lifter lifter) {
         switch (ovelseNavn) {
             case "3-hopp":
-                return calculateDetSomTrengsTreHopp(scoreAaOppnaa);
+                return calculateDetSomTrengsTreHopp(lifter, scoreAaOppnaa);
 
             case "kule":
                 return calculateDetSomTrengsKulekast(scoreAaOppnaa, lifter);
 
             case "40-meter":
-                return calculateDetSomTrengsSprint(scoreAaOppnaa);
+                return calculateDetSomTrengsSprint(lifter, scoreAaOppnaa);
             
             case "rykk":
             case "stot":
@@ -168,8 +185,9 @@ public class Poengberegning {
     }
 
 
-    private static double calculateDetSomTrengsTreHopp(double scoreAaOppnaa) {
-        double lengde = scoreAaOppnaa/20;
+    private static double calculateDetSomTrengsTreHopp(Lifter lifter, double scoreAaOppnaa) {
+        double alderfaktor = MeltzerFaber.getMeltzerCoefficient(lifter.getKjonn(), lifter.getAlder());
+        double lengde = scoreAaOppnaa/(20*alderfaktor);
         return Math.ceil(lengde * 100) / 100; // runder av til øvre centimeter
     }
 
@@ -186,20 +204,26 @@ public class Poengberegning {
         double kroppsvekt = adjustMaxMin(lifter.getKroppsvekt(), 'M');
 
         // deler på 1.2, fordi 5-kamp poeng er sinclaire ganget med 1.2
-        double nodvendigLengde= scoreAaOppnaa/ (Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2)))/10;
+        double alderfaktor = 1;
+        if (lifter.isVeteran())
+            alderfaktor = MeltzerFaber.getMeltzerCoefficient(lifter.getKjonn(), lifter.getAlder());
+
+        double nodvendigLengde= scoreAaOppnaa/ (alderfaktor*Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2)))/10; // TODO: riktig for vet?
 
         return Math.ceil(nodvendigLengde*100)/100;
     }
 
 
-    private static double calculateDetSomTrengsSprint(double scoreAaOppnaa) {
+    private static double calculateDetSomTrengsSprint(Lifter lifter, double scoreAaOppnaa) {
         double BASE_TIME = 8.0;
         int BASE_SCORE = 80;
         double TIME_DELTA = 0.1;
         int SCORE_DELTA = 4;
 
+        double aldersfaktor = MeltzerFaber.getMeltzerCoefficient(lifter.getKjonn(), lifter.getAlder());
+
         double scoreDifference = BASE_SCORE - scoreAaOppnaa-0.01;  //TODO: trenger å trekkefra 0.01? lik poeng-> delt ledelse?
-        double timeChange = (scoreDifference / SCORE_DELTA) * TIME_DELTA;
+        double timeChange = (scoreDifference / (SCORE_DELTA*aldersfaktor)) * TIME_DELTA; // TODO: blir dette rett for veteran??
         double finalTime = BASE_TIME + timeChange;
 
         double roundedFinalTime = Math.floor(finalTime * 10) / 10;
@@ -221,7 +245,13 @@ public class Poengberegning {
         double kroppsvekt = adjustMaxMin(lifter.getKroppsvekt(), lifter.getKjonn());
 
         // deler på 1.2, fordi 5-kamp poeng er sinclaire ganget med 1.2
-        double nodvendigVekt= scoreAaOppnaa/1.2 / (Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2)));
+        double aldersfaktor = 1;
+        if (lifter.isVeteran()) {
+            aldersfaktor = MeltzerFaber.getMeltzerCoefficient(lifter.getKjonn(), lifter.getAlder());
+        }
+
+        // TODO: riktig for veteran?
+        double nodvendigVekt= scoreAaOppnaa/ (1.2 * aldersfaktor) / (Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2)));
 
         return Math.ceil(nodvendigVekt);
     }
