@@ -269,7 +269,24 @@ public class Lifter {
 
     private void updatePoeng() {
         updatePoengForAlleOvelser();
-        this.poeng = ovelser.stream().mapToDouble(ovelse -> ovelse.getPoeng()).sum();
+        // Poengene for rykk og støt skal legges sammen før de rundes
+        // Eksempel rykk poeng 100.245 (avrundes til 100.25) og støt poeng 102.365 (avrundes til 102.37) => 100.245 + 102.365 = 202.61 (rikig avrundet)
+        // mens 100.25 + 102.37 = 202.62 (feil avrundet)
+        int totalKG = 0;
+        for (Ovelse ovelse : ovelser) {
+            if (ovelse.getNavn().equals("rykk") || ovelse.getNavn().equals("stot")) {
+                totalKG += ovelse.getBesteResultat();  
+            }            
+        }
+        double rykkStotPoeng = Poengberegning.calculateLofteScore(this, totalKG);
+        this.poeng = rykkStotPoeng;
+
+        // De resterende øvelsene kan trygt avrundes før de legges sammen
+        for (Ovelse ovelse : ovelser) {
+            if (!ovelse.getNavn().equals("rykk") && !ovelse.getNavn().equals("stot")) {
+               this.poeng += ovelse.getPoeng();  // Avrundet
+            }            
+        }
     }
 
     private void updatePoengForAlleOvelser() {

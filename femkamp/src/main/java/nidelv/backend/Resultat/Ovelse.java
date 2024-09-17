@@ -17,7 +17,7 @@ public class Ovelse {
     private double forsok2;
     private double forsok3;
 
-    private boolean fullfort;
+    private boolean isFullfort;
 
     private double poeng;
     protected double besteResultat;
@@ -27,7 +27,7 @@ public class Ovelse {
         validateInput(navn, forsok);
 
         this.navn = navn;
-        this.fullfort = false;
+        this.isFullfort = false;
         updateBesteResultatOgAlleForsok(forsok, lifter);
     }
     
@@ -175,20 +175,20 @@ public class Ovelse {
 
     private void updateFullfort() {
         if (forsok1==0 || forsok2==0) {
-            this.fullfort = false;
+            this.isFullfort = false;
             return;
         }
 
         boolean isSprint40 = navn.equals("40-meter");
         if (isSprint40) {
-            this.fullfort = true;
+            this.isFullfort = true;
             return;
         }
 
         if (forsok3==0) 
-            this.fullfort= false;
+            this.isFullfort= false;
         else
-            this.fullfort = true;
+            this.isFullfort = true;
 
     }
 
@@ -217,11 +217,13 @@ public class Ovelse {
 
     public void updatePoeng() {
         this.poeng = Poengberegning.calculatePoints(this, lifter);
+
     }
 
     public double getPoeng() {
         return poeng;
     }
+
 
     public List<Double> getForsok() {
         if (navn.equals("40-meter"))
@@ -306,11 +308,11 @@ public class Ovelse {
     }
 
     public boolean isFullfort() {
-        return fullfort;
+        return isFullfort;
     }
 
     public boolean isUnderkjennt() {
-        return fullfort && besteResultat==0;
+        return isFullfort && besteResultat==0;
     }
 
 }

@@ -32,6 +32,7 @@ public class Poengberegning {
         }
     }
 
+    
 
     private static double calculateTreHoppScore(Lifter lifter, double lengde) {
         double score = lengde*20;
@@ -73,7 +74,7 @@ public class Poengberegning {
     }
     
 
-    private static double calculateLofteScore(Lifter lifter, int weight) {
+    protected static double calculateLofteScore(Lifter lifter, int weight) {
         double sinclaire = calculateSinclaire(lifter, weight);
         double femKampLofteScore = sinclaire*1.2;
 
@@ -154,6 +155,9 @@ public class Poengberegning {
     public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
 
         double scoreForOvelse = ovelse.getPoeng();
+        // if (ovelse.getNavn().equals("rykk") || ovelse.getNavn().equals("stot")) {
+        //     scoreForOvelse = ca;
+        // }
         double lofterSinScoreUtenSisteOvelse = lifter.getPoeng() - scoreForOvelse;
         double scoreAaOppnaaIOvelse = round(lederScore,2)-lofterSinScoreUtenSisteOvelse; 
 
@@ -258,7 +262,7 @@ public class Poengberegning {
 
 
 
-    private static double round(double value, int places) {
+    public static double round(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
 
         long factor = (long) Math.pow(10, places);

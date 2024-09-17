@@ -59,6 +59,8 @@ public class ProgrammRunner {
         List<List<Object>> lofterLines = new ArrayList<>();
         // TODO: rewrite: ############################################
         String currentOvelse = pulje.getCurrentOvelse();
+        if (currentOvelse == null)
+            currentOvelse = "rykk";
         if (currentOvelse.equals("stot"))
             currentOvelse = "støt";
         int indexTilCurrentOvelse = 3;  // default to -1 (not found)

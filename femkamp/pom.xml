@@ -1,5 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>nidelv</groupId>
     <artifactId>femkamp</artifactId>
@@ -10,90 +11,52 @@
         <maven.compiler.target>11</maven.compiler.target>
         <javafx.version>19.0.2.1</javafx.version>
     </properties>
-<dependencies>
-    <dependency>
-        <groupId>org.openjfx</groupId>
-        <artifactId>javafx-controls</artifactId>
-        <version>${javafx.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.openjfx</groupId>
-        <artifactId>javafx-fxml</artifactId>
-        <version>${javafx.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>com.google.api-client</groupId>
-        <artifactId>google-api-client</artifactId>
-        <version>1.31.5</version>
-    </dependency>
-    <dependency>
-        <groupId>com.google.api-client</groupId>
-        <artifactId>google-api-client-gson</artifactId>
-        <version>1.31.5</version>
-    </dependency>
-    <dependency>
-        <groupId>com.google.api-client</groupId>
-        <artifactId>google-api-client-extensions</artifactId>
-        <version>1.6.0-beta</version>
-    </dependency>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.31.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client-gson</artifactId>
+            <version>1.31.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client-extensions</artifactId>
+            <version>1.6.0-beta</version>
+        </dependency>
 
-    <dependency>
-        <groupId>com.google.oauth-client</groupId>
-        <artifactId>google-oauth-client-java6</artifactId>
-        <version>1.31.5</version>
-    </dependency>
-    <dependency>
-        <groupId>com.google.oauth-client</groupId>
-        <artifactId>google-oauth-client-jetty</artifactId>
-        <version>1.31.5</version>
-    </dependency>
-    <dependency>
-        <groupId>com.google.apis</groupId>
-        <artifactId>google-api-services-sheets</artifactId>
-        <version>v4-rev573-1.25.0</version>
-    </dependency>
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-java6</artifactId>
+            <version>1.31.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-jetty</artifactId>
+            <version>1.31.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-sheets</artifactId>
+            <version>v4-rev573-1.25.0</version>
+        </dependency>
 
-    <dependency>
-        <groupId>com.google.http-client</groupId>
-        <artifactId>google-http-client-gson</artifactId>
-        <version>1.39.2</version>
-    </dependency>
-    <dependency>
-        <groupId>com.opencsv</groupId>
-        <artifactId>opencsv</artifactId>
-        <version>5.5.2</version>
-    </dependency>
-</dependencies>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-gson</artifactId>
+            <version>1.39.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.5.2</version>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <executions>
-                    <execution>
-                    <id>default-cli</id>
-                    <configuration>
-                        <mainClass>nidelv.App</mainClass>
-                        <launcher>nidelv.App</launcher>
-                        <jvmArgs>
-                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.http=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.https=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.file=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=java.base/sun.net.www.protocol.jar=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-exports=jdk.unsupported/sun.reflect=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=javafx.graphics/javafx.stage=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED</jvmArg>
-                        </jvmArgs>
-                    </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -101,38 +64,6 @@
                 <configuration>
                     <release>11</release>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <executions>
-                    <execution>
-                        <!-- Default configuration for running -->
-                        <!-- Usage: mvn clean javafx:run -->
-                        <id>default-cli</id>
-                        <configuration>
-                            <mainClass>nidelv.App</mainClass>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.6</version>
-                <executions>
-                    <execution>
-                        <!-- Default configuration for running -->
-                        <!-- Usage: mvn clean javafx:run -->
-                        <id>default-cli</id>
-                        <configuration>
-                            <mainClass>nidelv.App</mainClass>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
