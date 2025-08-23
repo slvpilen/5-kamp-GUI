@@ -8,7 +8,7 @@ Denne applikasjonen regner ut score board for 5-kamp konkurranser. Scoar boardet
 
 1. Add API key
 2. `cd femkamp`
-3. `mvn clea install`
+3. `mvn clean install`
 
 ### To run:
 
