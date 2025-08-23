@@ -19,6 +19,10 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.api.client.auth.oauth2.TokenResponseException;
+import com.google.api.client.auth.oauth2.StoredCredential;
+import com.google.api.client.util.store.DataStore;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +52,21 @@ public class GoogleDockReaderAndWriter {
     private static List<ValueRange> previusInPutSheetDate = new ArrayList<>();
     private static List<ValueRange> previusOutPutSheetData = new ArrayList<>();
 
+    private static final String TOKENS_DIR = "tokens";
+    private static final String USER_ID = "user";
+
+    private static boolean isInvalidGrant(TokenResponseException e) {
+        return e.getStatusCode() == 400
+            && e.getDetails() != null
+            && "invalid_grant".equals(e.getDetails().getError());
+    }
+
+    private static void clearStoredCredential(FileDataStoreFactory factory, String userId) throws IOException {
+        DataStore<StoredCredential> store = StoredCredential.getDefaultDataStore(factory);
+        store.delete(userId);
+    }
+
+
     public static void setSpreadsheetIDAndSheetService() throws IOException, GeneralSecurityException {
         SPREADSHEET_ID_PLOTTING = extractSpreadsheetId(Settings.googleDockURL_plotting);
         SPREADSHEET_ID_READING = extractSpreadsheetId(Settings.googleDockURL_readonly);
@@ -60,22 +79,44 @@ public class GoogleDockReaderAndWriter {
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
             GsonFactory.getDefaultInstance(), new InputStreamReader(in)
         );
-        
+    
         List<String> scopes = Arrays.asList(SheetsScopes.SPREADSHEETS);
-
+    
+        FileDataStoreFactory storeFactory = new FileDataStoreFactory(new java.io.File(TOKENS_DIR));
+    
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
             GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(),
             clientSecrets, scopes)
-            .setDataStoreFactory(new FileDataStoreFactory(new java.io.File("tokens")))
+            .setDataStoreFactory(storeFactory)
             .setAccessType("offline")
             .build();
-
-        Credential credential = new AuthorizationCodeInstalledApp(
-            flow, new LocalServerReceiver())
-            .authorize("user");
-
-        return credential;
+    
+        try {
+            Credential credential = new AuthorizationCodeInstalledApp(
+                flow, new LocalServerReceiver() // ev. .Builder().setPort(8888).build()
+            ).authorize(USER_ID);
+    
+            // Tving frem refresh nå, så vi fanger evt. ugyldig refresh token tidlig
+            credential.refreshToken();
+            return credential;
+    
+        } catch (TokenResponseException e) {
+            if (isInvalidGrant(e)) {
+                // Slett lagret credential og prøv igjen (bruker får ny login)
+                clearStoredCredential(storeFactory, USER_ID);
+    
+                Credential credential = new AuthorizationCodeInstalledApp(
+                    flow, new LocalServerReceiver()
+                ).authorize(USER_ID);
+    
+                // valgfritt: sjekk at refresh virker
+                credential.refreshToken();
+                return credential;
+            }
+            throw e;
+        }
     }
+    
 
     public static Sheets getSheetsService() throws IOException, GeneralSecurityException {
         Credential credential = authorize();
@@ -84,6 +125,7 @@ public class GoogleDockReaderAndWriter {
             .setApplicationName(APPLICATION_NAME)
             .build();
     }
+    
 
     public static List<String> getInputSpreadSheetNamesContaining(String containing) throws IOException, GeneralSecurityException {
         List<String> sheetNames = getInputSpreadsheetNames();
