@@ -1,8 +1,11 @@
 package nidelv.frontend;
 
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.io.PrintStream;
-import javax.swing.*;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class MainFrame extends JFrame {
     public static final String CARD_SETTINGS = "settings";
@@ -15,15 +18,40 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         super("Femkamp");
-        UiUtil.applyAppIcon(this);
         
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setMinimumSize(new Dimension(900, 600));
         setLocationByPlatform(true);
 
         root.add(settingsPanel, CARD_SETTINGS);
         root.add(consolePanel,  CARD_CONSOLE);
         setContentPane(root);
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                int result = javax.swing.JOptionPane.showConfirmDialog(
+                    MainFrame.this,
+                    "Er du sikker på at du vil lukke?",
+                    "Bekreft avslutning",
+                    javax.swing.JOptionPane.YES_OPTION,
+                    javax.swing.JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (result == javax.swing.JOptionPane.YES_OPTION) {
+                    // Hvis bruker velger "Ja", avslutt programmet
+                    dispose();
+                    System.exit(0);
+                }
+
+            }
+        });
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        UiUtil.applyAppIcon(this);
     }
 
     public void showSettings() { cards.show(root, CARD_SETTINGS); }

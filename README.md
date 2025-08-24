@@ -108,7 +108,7 @@ jpackage \
   --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,jdk.crypto.ec,jdk.httpserver \
   --icon "./src/main/resources/icon.ico" \
   --win-menu --win-shortcut --win-per-user-install \
-  --app-version 1.0.7 \
+  --app-version 1.1.4 \
   --vendor "Femkamp" \
 
 

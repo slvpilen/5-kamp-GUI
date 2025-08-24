@@ -102,7 +102,7 @@ public class Rykk implements Ovelse {
             if (obj.equals(""))
                 return 0;
             try {
-                return Double.valueOf((String) obj);
+                return Double.parseDouble((String) obj);
             } catch (NumberFormatException e) {
                 lifter.addErrorMessage(obj + " kan ikke konverteres til et flyttall");
                 return 0;
@@ -123,7 +123,7 @@ public class Rykk implements Ovelse {
             if (obj.equals(""))
                 return 0;
             try {
-                return Integer.valueOf((String) obj);
+                return Integer.parseInt((String) obj);
             } catch (NumberFormatException e) {
                 try {
                     return convertToNegative((String) obj);
@@ -156,34 +156,21 @@ public class Rykk implements Ovelse {
         if (negativeWeight)
             return 0;
 
-        double points = 0.0;
-        
         List<Double> coefficientAndDevisor = coefficientAndDivisor(kjonn);
         double coefficient = coefficientAndDevisor.get(0);
         double divisor = coefficientAndDevisor.get(1);
 
-        points = weight * Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2));
+        double points = weight * Math.pow(10, coefficient * Math.pow(Math.log10(kroppsvekt/divisor), 2));
         return round(points, 2);
     }
 
 
     private static List<Double> coefficientAndDivisor(char kjonn) {
-        switch(kjonn) {
-
-            case 'M':
-                double coefficient = 0.751945030;
-                double divisor = 175.508;
-                return Arrays.asList(coefficient, divisor);
-            
-            case 'K':
-                coefficient = 0.783497476;
-                divisor = 153.655;
-                return Arrays.asList(coefficient, divisor);
-            
-            default:
-                throw new IllegalArgumentException("Not a valid kjonn");            
-
-        }
+        return switch (kjonn) {
+            case 'M' -> Arrays.asList(0.751945030, 175.508);
+            case 'K' -> Arrays.asList(0.783497476, 153.655);
+            default -> throw new IllegalArgumentException("Not a valid kjonn");
+        };
     }
 
     private static double round(double value, int places) {
@@ -200,8 +187,7 @@ public class Rykk implements Ovelse {
         if (objStreng.length()<1)
             throw new NumberFormatException("ikke et negativt tall!");
 
-        String utenMinusTegn = objStreng.substring(1, objStreng.length());
-        return -Integer.valueOf(utenMinusTegn);
+        return -Integer.parseInt(objStreng.substring(1));
     }
 
 

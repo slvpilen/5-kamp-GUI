@@ -8,10 +8,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import nidelv.backend.Resultat.Lifter;
 import nidelv.backend.Resultat.Ovelse;
 
-public class Pulje {
+public final class Pulje {
 
     private final String puljeName;
     private static final Comparator<Lifter> comparator = Comparator
@@ -19,7 +20,7 @@ public class Pulje {
 
     private List<List<Object>> values;
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
-    private List<Object> errorMeldinger;
+    private final List<Object> errorMeldinger = new ArrayList<>();
     private String lastCurrentOvelse;
     private String currentOvelse = "rykk";
 
@@ -33,11 +34,11 @@ public class Pulje {
 
 
     public void createLifters() throws IOException{
-        this.errorMeldinger = new ArrayList<>();
+        errorMeldinger.clear();
 
         femkampKategoris.clear();
 
-        if (values == null || values.size() == 0)
+        if (values == null || values.isEmpty())
             return;
             
         femkampKategoris.add(new FemkampKategori());
@@ -48,7 +49,7 @@ public class Pulje {
         for (int i = 1; i < values.size(); i++) {
             lifterid = i;
 
-            boolean tomRad = values.get(i).size()==0; 
+            boolean tomRad = values.get(i).isEmpty(); 
             if (tomRad) {
                 femkampKategoris.add(new FemkampKategori());
             }
@@ -72,7 +73,7 @@ public class Pulje {
 
     private void sortLifters() {
         if (comparator != null && femkampKategoris!= null)
-            femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLiftersAndUpdateRankAndPoengForLedelse(this.comparator));
+            femkampKategoris.forEach(femkapmkat -> femkapmkat.sortLiftersAndUpdateRankAndPoengForLedelse(Pulje.comparator));
     }
 
     public String getName() {
@@ -85,10 +86,10 @@ public class Pulje {
         this.errorMeldinger.clear();
 
         this.values = values;
-        if (values == null || values.size() == 0)
+        if (values == null || values.isEmpty())
             return;
 
-        values = values.stream().filter(line -> line.size()>0).collect(Collectors.toList());
+        values = values.stream().filter(line -> !line.isEmpty()).collect(Collectors.toList());
         int numberOfLiftersInPulje = femkampKategoris.stream().mapToInt(femkampKat -> femkampKat.numberOfLifters()).sum();
         // -1 fordi første linje ikke skal telles, det er currentOvelse info
         if (values.size()-1 != numberOfLiftersInPulje) 
@@ -113,7 +114,7 @@ public class Pulje {
         for (int i =1 ; i<values.size() ; i++) {
             List<Object> line = values.get(i);
 
-            boolean harInnehold = line.size()>0;
+            boolean harInnehold = !line.isEmpty();
 
             if (harInnehold) {
                 int lifterID = i;
@@ -181,7 +182,7 @@ public class Pulje {
 
     // denne skal skrive meldingen til google sheet
     private void appendErrorMeldingerTilGoogleSheet() throws IOException {
-        String celleAaStarteAaSkrive = "A"+String.valueOf(Settings.antallRaderSomLeses+1);
+        String celleAaStarteAaSkrive = "A"+String.valueOf(Settings.getAntallRaderSomLeses()+1);
 
         errorMeldinger.removeIf(melding -> melding == null || melding.equals(""));
 

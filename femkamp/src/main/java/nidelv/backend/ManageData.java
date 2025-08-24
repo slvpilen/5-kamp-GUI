@@ -15,7 +15,7 @@ import nidelv.backend.Pulje.IllegalNumberOfLiftersException;
 public class ManageData {
     
 
-    private Collection<Pulje> puljer = new ArrayList<>();
+    private final Collection<Pulje> puljer = new ArrayList<>();
     private List<String> puljeSpreadsheetNames = new ArrayList<>();
 
 
@@ -35,7 +35,7 @@ public class ManageData {
             try {
                 puljer.add(new Pulje(spreadSheetName, values));
             } catch (IOException e) {
-                e.printStackTrace();
+                e.printStackTrace(System.err);
             }
         });
     }
@@ -47,7 +47,7 @@ public class ManageData {
 
         List<String> manglendeOutputSheets = findMissingElements(puljeSpreadsheetNames, puljeOutputSheetnames);
 
-        boolean finnesNoenSomMangler = manglendeOutputSheets.size()>0;
+        boolean finnesNoenSomMangler = !manglendeOutputSheets.isEmpty();
 
         if (finnesNoenSomMangler) {
             System.out.println("Fant manglende output sheets, oppretter disse: " + manglendeOutputSheets);
@@ -103,7 +103,7 @@ public class ManageData {
             } catch (IllegalNumberOfLiftersException e) {
                 createLifters(pulje);
             } catch (IOException e) {
-                e.printStackTrace();
+                e.printStackTrace(System.err);
             }
         });
     }
@@ -112,7 +112,7 @@ public class ManageData {
         try{
             pulje.createLifters();
         } catch (IOException e1) {
-            e1.printStackTrace();
+            e1.printStackTrace(System.err);
         }
     }
 

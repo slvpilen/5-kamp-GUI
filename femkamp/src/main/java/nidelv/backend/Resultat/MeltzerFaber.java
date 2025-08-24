@@ -39,14 +39,11 @@ public class MeltzerFaber {
         // Get the corresponding row for the ages
         double[] row = meltzerTabell[age - 30];
     
-        if (kjonn == 'M' || kjonn == 'm') 
-            return row[1];
-
-        else if (kjonn == 'K' || kjonn == 'k')
-            return row[2];
-
-        else 
-            throw new IllegalArgumentException("Invalid gender. Must be 'M' or 'K'");  
+        return switch (kjonn) {
+            case 'M', 'm' -> row[1];
+            case 'K', 'k' -> row[2];
+            default -> throw new IllegalArgumentException("Invalid gender. Must be 'M' or 'K'");
+        };
     }
     
     

@@ -12,24 +12,13 @@ public class Poengberegning {
         String ovelseNavn = ovelse.getNavn();
         double resultat = ovelse.getBesteResultat();
 
-        switch (ovelseNavn) {
-
-            case "3-hopp":
-                return calculateTreHoppScore(lifter, resultat);
-
-            case "kule":
-                return calculateKulekastScore(lifter,  resultat);
-
-            case "40-meter":
-                return calculateSprintScore(lifter, resultat);
-            
-            case "rykk":
-            case "stot":
-                return calculateLofteScore(lifter, (int) round(resultat,0));
-
-            default:
-                throw new IllegalArgumentException("Invalid ovelse: " + ovelse);
-        }
+        return switch (ovelseNavn) {
+            case "3-hopp" -> calculateTreHoppScore(lifter, resultat);
+            case "kule" -> calculateKulekastScore(lifter, resultat);
+            case "40-meter" -> calculateSprintScore(lifter, resultat);
+            case "rykk", "stot" -> calculateLofteScore(lifter, (int) round(resultat, 0));
+            default -> throw new IllegalArgumentException("Invalid ovelse: " + ovelse);
+        };
     }
 
     
@@ -119,37 +108,19 @@ public class Poengberegning {
 
 
     private static List<Double> coefficientAndDivisor(char kjonn) {
-        switch(kjonn) {
-
-            case 'M':
-                double coefficient = 0.722762521;
-                double divisor = 193.609;
-                return Arrays.asList(coefficient, divisor);
-            
-            case 'K':
-                coefficient = 0.787004341;
-                divisor = 153.757;
-                return Arrays.asList(coefficient, divisor);
-            
-            default:
-                throw new IllegalArgumentException("Not a valid kjonn");            
-
-        }
+        return switch (kjonn) {
+            case 'M' -> Arrays.asList(0.722762521, 193.609);
+            case 'K' -> Arrays.asList(0.787004341, 153.757);
+            default -> throw new IllegalArgumentException("Not a valid kjonn");
+        };
     }
 
     private static double adjustMaxMin(double kroppsvekt, char kjonn) {
-        switch(kjonn){
-
-            case 'M':
-                return Math.max(Math.min(193.6, kroppsvekt), 32);
-
-            case 'K':
-                return Math.max(Math.min(153.8, kroppsvekt), 28);
-
-            default:
-                throw new IllegalArgumentException("Not a valid kjonn");   
-
-        }
+        return switch (kjonn) {
+            case 'M' -> Math.max(Math.min(193.6, kroppsvekt), 32);
+            case 'K' -> Math.max(Math.min(153.8, kroppsvekt), 28);
+            default -> throw new IllegalArgumentException("Not a valid kjonn");
+        };
     }
     
     public static double calculateHvaSomTrengsForLedelse(Ovelse ovelse, Lifter lifter, double lederScore) {
@@ -168,24 +139,13 @@ public class Poengberegning {
     }
 
     private static double calculateDetSomTrengs(double scoreAaOppnaa, String ovelseNavn, Lifter lifter) {
-        switch (ovelseNavn) {
-            case "3-hopp":
-                return calculateDetSomTrengsTreHopp(lifter, scoreAaOppnaa);
-
-            case "kule":
-                return calculateDetSomTrengsKulekast(scoreAaOppnaa, lifter);
-
-            case "40-meter":
-                return calculateDetSomTrengsSprint(lifter, scoreAaOppnaa);
-            
-            case "rykk":
-            case "stot":
-                return calculateDetSomTrengsLoft(scoreAaOppnaa, lifter);
-
-            default:
-                throw new IllegalArgumentException("Invalid ovelse: " + ovelseNavn);
-
-        }
+        return switch (ovelseNavn) {
+            case "3-hopp" -> calculateDetSomTrengsTreHopp(lifter, scoreAaOppnaa);
+            case "kule" -> calculateDetSomTrengsKulekast(scoreAaOppnaa, lifter);
+            case "40-meter" -> calculateDetSomTrengsSprint(lifter, scoreAaOppnaa);
+            case "rykk", "stot" -> calculateDetSomTrengsLoft(scoreAaOppnaa, lifter);
+            default -> throw new IllegalArgumentException("Invalid ovelse: " + ovelseNavn);
+        };
     }
 
 

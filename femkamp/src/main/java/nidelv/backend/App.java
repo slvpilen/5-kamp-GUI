@@ -1,6 +1,9 @@
 package nidelv.backend;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.swing.SwingUtilities;
 
 import nidelv.frontend.MainFrame;
@@ -11,9 +14,9 @@ public class App {
     private static void run(AtomicBoolean cancelFlag) {
         try {
             ProgrammRunner pr = new ProgrammRunner();
-            pr.runProgram(cancelFlag);   // bør returnere jevnlig og sjekke cancelFlag
-        } catch (Throwable t) {          // fang ALT så Console forblir oppe
-            t.printStackTrace();         // vises i ConsolePanel via redirect
+            pr.runProgram(cancelFlag);   
+        } catch (IOException | GeneralSecurityException t) {        
+            t.printStackTrace(System.err);       
             ProgrammRunner.takeBreak(10);
         }
     }

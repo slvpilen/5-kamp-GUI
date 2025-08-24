@@ -1,28 +1,5 @@
 package nidelv.backend;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.auth.oauth2.StoredCredential;
-import com.google.api.client.auth.oauth2.TokenResponseException;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.store.DataStore;
-import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.api.services.sheets.v4.Sheets;
-import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.AddSheetRequest;
-import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
-import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
-import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
-import com.google.api.services.sheets.v4.model.Request;
-import com.google.api.services.sheets.v4.model.Sheet;
-import com.google.api.services.sheets.v4.model.SheetProperties;
-import com.google.api.services.sheets.v4.model.Spreadsheet;
-import com.google.api.services.sheets.v4.model.ValueRange;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,15 +16,35 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AddSheetRequest;
+import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
+import com.google.api.services.sheets.v4.model.Request;
+import com.google.api.services.sheets.v4.model.Sheet;
+import com.google.api.services.sheets.v4.model.SheetProperties;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
+import com.google.api.services.sheets.v4.model.ValueRange;
+
 public class GoogleDockReaderAndWriter {
 
     private static Sheets sheetsService;
-    private static String APPLICATION_NAME = "Femkamp";
+    private static final String APPLICATION_NAME = "Femkamp";
     private static String SPREADSHEET_ID_PLOTTING;
     private static String SPREADSHEET_ID_READING;
 
-    private static List<ValueRange> inPutSheetsData  = new ArrayList<>();
-    private static List<ValueRange> outPutSheetsData  = new ArrayList<>();
+    private static final List<ValueRange> inPutSheetsData = new ArrayList<>();
+    private static final List<ValueRange> outPutSheetsData = new ArrayList<>();
 
     private static List<ValueRange> previusInPutSheetDate = new ArrayList<>();
     private static List<ValueRange> previusOutPutSheetData = new ArrayList<>();
@@ -55,17 +52,6 @@ public class GoogleDockReaderAndWriter {
     // Token-lagring (bruker-mappe, ikke Program Files)
     private static final String TOKENS_SUBDIR = "Femkamp/tokens";
     private static final String USER_ID = "user";
-
-    private static boolean isInvalidGrant(TokenResponseException e) {
-        return e.getStatusCode() == 400
-            && e.getDetails() != null
-            && "invalid_grant".equals(e.getDetails().getError());
-    }
-
-    private static void clearStoredCredential(FileDataStoreFactory factory, String userId) throws IOException {
-        DataStore<StoredCredential> store = StoredCredential.getDefaultDataStore(factory);
-        store.delete(userId);
-    }
 
     /** Kryssplattform: finn en brukerskrivbar token-mappe */
     private static Path getTokenDir() {
@@ -89,17 +75,21 @@ public class GoogleDockReaderAndWriter {
         sheetsService = getSheetsService();
     }
 
-    private static Credential authorize() throws IOException, GeneralSecurityException {
-        // 1) Finn credentials.json (som før)
+    private static Credential authorize() throws IOException {
+
         String userChosenPath = CredentialsPathStore.get().getPath();
         InputStream in = null;
         if (userChosenPath != null && !userChosenPath.isBlank()) {
-            try { in = new java.io.FileInputStream(userChosenPath); } catch (IOException ignored) {}
+            try {
+                in = new java.io.FileInputStream(userChosenPath);
+            } catch (IOException ignored) {
+            }
         }
         if (in == null) {
             in = GoogleDockReaderAndWriter.class.getResourceAsStream("/credentials.json");
             if (in == null) {
-                throw new IOException("Fant ikke credentials.json. Velg fil i UI, eller legg den i resources som /credentials.json");
+                throw new IOException(
+                        "Fant ikke credentials.json. Velg fil i UI, eller legg den i resources som /credentials.json");
             }
         }
 
@@ -107,18 +97,17 @@ public class GoogleDockReaderAndWriter {
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(in));
         List<String> scopes = Arrays.asList(SheetsScopes.SPREADSHEETS);
 
-        // 2) Tokens-dir (må være mappe)
+        // Tokens-dir (må være mappe)
         Path tokenDir = getTokenDir();
         Files.createDirectories(tokenDir);
         if (!tokenDir.toFile().isDirectory()) {
             throw new IOException("Tokens-sti er ikke en mappe: " + tokenDir);
         }
 
-        // 3) Forsøk bygg + autorisasjon. Ved korrupt store: slett mappa og prøv én gang til.
-        for (int attempt = 0; attempt < 2; attempt++) {
-            FileDataStoreFactory storeFactory;
-            GoogleAuthorizationCodeFlow flow;
+        FileDataStoreFactory storeFactory;
+        GoogleAuthorizationCodeFlow flow;
 
+        for (int attempt = 0; attempt < 2; attempt++) {
             try {
                 storeFactory = new FileDataStoreFactory(tokenDir.toFile());
                 flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -126,59 +115,24 @@ public class GoogleDockReaderAndWriter {
                         jsonFactory,
                         clientSecrets,
                         scopes)
-                    .setDataStoreFactory(storeFactory)
-                    .setAccessType("offline")
-                    .build();
-            } catch (java.io.StreamCorruptedException | java.io.OptionalDataException e) {
-                // Korrupt serialisering allerede ved bygging – self heal
-                if (attempt == 0) { nukeTokenDir(tokenDir); continue; }
-                throw e;
-            }
+                        .setDataStoreFactory(storeFactory)
+                        .setAccessType("offline")
+                        .build();
 
-            try {
                 Credential credential = new AuthorizationCodeInstalledApp(
-                        flow, new LocalServerReceiver.Builder().setPort(0).build()
-                ).authorize(USER_ID);
-
-                // Tving en tidlig refresh for å avdekke ugyldig refresh-token nå
-                try {
-                    credential.refreshToken();
-                } catch (TokenResponseException tre) {
-                    if (isInvalidGrant(tre)) {
-                        if (attempt == 0) {
-                            // enten slett kun posten…
-                            try {
-                                DataStore<StoredCredential> store = StoredCredential.getDefaultDataStore(storeFactory);
-                                store.delete(USER_ID);
-                            } catch (Exception ignore) {}
-                            // …eller slett alt om store også er suspekt:
-                            nukeTokenDir(tokenDir);
-                            continue; // ny runde → ny login
-                        }
-                    }
-                    throw tre; // annet tokenproblem
-                }
-
+                        flow, new LocalServerReceiver.Builder().setPort(0).build()).authorize(USER_ID);
+                if (credential == null)
+                    throw new IOException("Credential is null");
                 return credential; // suksess
 
-            } catch (java.io.StreamCorruptedException | java.io.OptionalDataException e) {
-                // Korrupt lesing inne i authorize()-flyten
-                if (attempt == 0) { nukeTokenDir(tokenDir); continue; }
-                throw e;
-            } catch (TokenResponseException e) {
-                // Andre tokenfeil ved første forsøk → self heal og prøv på nytt
-                if (attempt == 0 && isInvalidGrant(e)) {
-                    nukeTokenDir(tokenDir);
-                    continue;
-                }
-                throw e;
+            } catch (IOException | GeneralSecurityException e) {
+                System.err.println("Exception during authorization: " + e.getMessage());
+                nukeTokenDir(tokenDir);
             }
         }
-
-        // Skal aldri nå hit
-        throw new IllegalStateException("Autorisasjon mislyktes etter self-heal.");
+        throw new IOException("Kunne ikke autorisere med Google Sheets API etter to forsøk." +
+                " Slett evt. manuelt token-mappen: " + tokenDir);
     }
-
 
     private static void nukeTokenDir(Path tokenDir) {
         try {
@@ -186,22 +140,24 @@ public class GoogleDockReaderAndWriter {
             java.io.File[] files = dir.listFiles();
             if (files != null) {
                 for (java.io.File f : files) {
-                    if (!f.delete()) f.deleteOnExit();
+                    if (!f.delete())
+                        f.deleteOnExit();
                 }
             }
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
     }
-
 
     public static Sheets getSheetsService() throws IOException, GeneralSecurityException {
         Credential credential = authorize();
         return new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(),
-            GsonFactory.getDefaultInstance(), credential)
-            .setApplicationName(APPLICATION_NAME)
-            .build();
+                GsonFactory.getDefaultInstance(), credential)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
     }
 
-    public static List<String> getInputSpreadSheetNamesContaining(String containing) throws IOException, GeneralSecurityException {
+    public static List<String> getInputSpreadSheetNamesContaining(String containing)
+            throws IOException, GeneralSecurityException {
         List<String> sheetNames = getInputSpreadsheetNames();
         return sheetNames.stream().filter(n -> n.contains(containing)).collect(Collectors.toList());
     }
@@ -221,38 +177,46 @@ public class GoogleDockReaderAndWriter {
     private static String extractSpreadsheetId(String url) {
         String pattern = "https://docs\\.google\\.com/spreadsheets/d/([a-zA-Z0-9-_]+)/";
         Matcher matcher = Pattern.compile(pattern).matcher(url);
-        if (matcher.find()) return matcher.group(1);
+        if (matcher.find())
+            return matcher.group(1);
         throw new IllegalArgumentException("Invalid Google Sheets URL");
     }
 
     public static BatchGetValuesResponse getMultipleSheetInputData(List<String> sheetNames) throws IOException {
         List<String> ranges = new ArrayList<>();
         for (String sheetName : sheetNames) {
-            String range = sheetName + "!A3:U" + Settings.antallRaderSomLeses;
+            String range = sheetName + "!A3:U" + Settings.getAntallRaderSomLeses();
             ranges.add(range);
         }
         return sheetsService.spreadsheets().values()
-            .batchGet(SPREADSHEET_ID_PLOTTING)
-            .setRanges(ranges)
-            .execute();
+                .batchGet(SPREADSHEET_ID_PLOTTING)
+                .setRanges(ranges)
+                .execute();
     }
 
-    public static void deletInputSheetData() { inPutSheetsData.clear(); }
+    public static void deletInputSheetData() {
+        inPutSheetsData.clear();
+    }
 
-    public static void deletOutoutSheetData() { outPutSheetsData.clear(); }
+    public static void deletOutoutSheetData() {
+        outPutSheetsData.clear();
+    }
 
-    public static void addInputSheetData(String sheetName, String cellStartPlotting, List<Object> errorMeldinger) throws IOException {
+    public static void addInputSheetData(String sheetName, String cellStartPlotting, List<Object> errorMeldinger)
+            throws IOException {
         StandarizeAndAddValueRangeToSheetData(inPutSheetsData, sheetName, cellStartPlotting, errorMeldinger);
     }
 
-    private static void StandarizeAndAddValueRangeToSheetData(List<ValueRange> sheetData, String sheetName, String cellStartPlotting, List<Object> dataToWrite) throws IOException {
+    private static void StandarizeAndAddValueRangeToSheetData(List<ValueRange> sheetData, String sheetName,
+            String cellStartPlotting, List<Object> dataToWrite) throws IOException {
         List<List<Object>> rows = dataToWrite.stream()
-            .map(Collections::singletonList)
-            .collect(Collectors.toList());
+                .map(Collections::singletonList)
+                .collect(Collectors.toList());
         addValueRangeToSheetData(sheetData, sheetName, cellStartPlotting, rows);
     }
 
-    private static void addValueRangeToSheetData(List<ValueRange> sheetData, String sheetName, String cellStartPlotting, List<List<Object>> dataToWrite) throws IOException {
+    private static void addValueRangeToSheetData(List<ValueRange> sheetData, String sheetName, String cellStartPlotting,
+            List<List<Object>> dataToWrite) throws IOException {
         String range = sheetName + "!" + cellStartPlotting;
         sheetData.add(new ValueRange().setRange(range).setValues(dataToWrite));
     }
@@ -269,7 +233,8 @@ public class GoogleDockReaderAndWriter {
             previusOutPutSheetData = new ArrayList<>(outPutSheetsData);
     }
 
-    private static boolean writeToFileIfNewData(List<ValueRange> newData, List<ValueRange> previusData, String spreadsheet_id) throws IOException {
+    private static boolean writeToFileIfNewData(List<ValueRange> newData, List<ValueRange> previusData,
+            String spreadsheet_id) throws IOException {
         boolean ulikData = !compareValueRangeLists(newData, previusData);
         if (ulikData) {
             writeToFile(newData, spreadsheet_id);
@@ -280,28 +245,34 @@ public class GoogleDockReaderAndWriter {
     }
 
     private static boolean compareValueRangeLists(List<ValueRange> list1, List<ValueRange> list2) {
-        if (list1.size() != list2.size()) return false;
+        if (list1.size() != list2.size())
+            return false;
         for (int i = 0; i < list1.size(); i++) {
-            if (!compareValueRanges(list1.get(i), list2.get(i))) return false;
+            if (!compareValueRanges(list1.get(i), list2.get(i)))
+                return false;
         }
         return true;
     }
 
     public static boolean compareValueRanges(ValueRange vr1, ValueRange vr2) {
-        if (vr1 == vr2) return true;
-        if (vr1 == null || vr2 == null) return false;
-        if (!Objects.equals(vr1.getRange(), vr2.getRange())) return false;
-        if (!Objects.equals(vr1.getMajorDimension(), vr2.getMajorDimension())) return false;
+        if (vr1 == vr2)
+            return true;
+        if (vr1 == null || vr2 == null)
+            return false;
+        if (!Objects.equals(vr1.getRange(), vr2.getRange()))
+            return false;
+        if (!Objects.equals(vr1.getMajorDimension(), vr2.getMajorDimension()))
+            return false;
         return Objects.equals(vr1.getValues(), vr2.getValues());
     }
 
     private static void writeToFile(List<ValueRange> data, String spreadsheetId) throws IOException {
         BatchUpdateValuesRequest batchBody = new BatchUpdateValuesRequest()
-            .setValueInputOption("RAW")
-            .setData(data);
+                .setValueInputOption("RAW")
+                .setData(data);
         sheetsService.spreadsheets().values()
-            .batchUpdate(spreadsheetId, batchBody)
-            .execute();
+                .batchUpdate(spreadsheetId, batchBody)
+                .execute();
     }
 
     public static void createNewSheetsOutput(List<String> sheetNames) throws IOException {

@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 
-public class Ovelse {
+public final class Ovelse {
     public static final Collection<String> validOvelser = Arrays.asList("rykk", "stot", "3-hopp", "kule", "40-meter");
 
     protected final String navn;
@@ -89,10 +89,7 @@ public class Ovelse {
             if (!forrigeVarEtForsok && etResultat)
                 return false;
 
-            else if (etResultat)
-                forrigeVarEtForsok = true;
-            else
-                forrigeVarEtForsok = false;
+            forrigeVarEtForsok = etResultat;
         }
         return true;
     }
@@ -185,29 +182,26 @@ public class Ovelse {
             return;
         }
 
-        if (forsok3==0) 
-            this.isFullfort= false;
-        else
-            this.isFullfort = true;
+        this.isFullfort = forsok3 != 0;
 
     }
 
     private void updateBesteResultatForLift() {
         List<Double> alleForsok = getForsok();
-        double besteResultat;
+        double beregnetBesteResultat;
         if (navn.equals("40-meter")) {
 
             if (alleForsok.get(0)<alleForsok.get(1) || alleForsok.get(1)<1){
-                besteResultat = alleForsok.get(0);
+                beregnetBesteResultat = alleForsok.get(0);
             }
             else
-                besteResultat = alleForsok.get(1);
+                beregnetBesteResultat = alleForsok.get(1);
         } else {
             alleForsok.sort((a,b) -> b.compareTo(a));
-            besteResultat =  alleForsok.get(0);
+            beregnetBesteResultat =  alleForsok.get(0);
         }
 
-        this.besteResultat = Math.max(besteResultat, 0);
+        this.besteResultat = Math.max(beregnetBesteResultat, 0);
         
     }
 
@@ -250,21 +244,18 @@ public class Ovelse {
         if (obj == null) 
             return 0.0;
             
-        if (obj instanceof String) {
-            if (obj.equals(""))
+        if (obj instanceof String objStr) {
+            if (objStr.equals(""))
                 return 0;
             try {
-                return Double.valueOf((String) obj);
+                return Double.parseDouble(objStr);
             } catch (NumberFormatException e) {
-                String objStreng = (String) obj;
-                if (objStreng.length()==1) // anntar at det er "-", men contains fungerer ikke...
+                if (objStr.length()==1) // anntar at det er "-", men contains fungerer ikke...
                     return -1;
 
-                lifter.addErrorMessage(obj + " kan ikke konverteres til et flyttall");
+                lifter.addErrorMessage(objStr + " kan ikke konverteres til et flyttall");
                 return 0;
             }
-            
-
         } else {
             throw new IllegalArgumentException("Objectet kan ikke konverteres");
         }
@@ -275,16 +266,16 @@ public class Ovelse {
         if (obj == null)
             return 0;
 
-        if (obj instanceof String) {
-            if (obj.equals(""))
+        if (obj instanceof String objStr) {
+            if (objStr.equals(""))
                 return 0;
             try {
-                return Integer.valueOf((String) obj);
+                return Integer.parseInt(objStr);
             } catch (NumberFormatException e) {
                 try {
-                    return convertToNegative((String) obj);
+                    return convertToNegative(objStr);
                 } catch (NumberFormatException exception){
-                    lifter.addErrorMessage(obj + " kan ikke konverteres til et heltall");
+                    lifter.addErrorMessage(objStr + " kan ikke konverteres til et heltall");
                     return -1;
                 }
             }
@@ -300,9 +291,10 @@ public class Ovelse {
             throw new NumberFormatException("ikke et negativt tall!");
 
         String utenMinusTegn = objStreng.substring(1, objStreng.length());
-        return -Integer.valueOf(utenMinusTegn);
+        return -Integer.parseInt(utenMinusTegn);
     }
 
+    @Override
     public String toString() {
         return "{ovelse: " + this.navn +  " resultat: " + besteResultat + "}";
     }

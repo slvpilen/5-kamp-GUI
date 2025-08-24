@@ -1,18 +1,35 @@
 package nidelv.frontend;
 
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-
-import nidelv.backend.Settings;
-import nidelv.backend.CredentialsPathStore;
-
-import java.awt.*;
+import java.awt.Desktop;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.dnd.*;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDropEvent;
 import java.io.FileReader;
 import java.net.URI;
 import java.util.List;
 import java.util.prefs.Preferences;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+
+import nidelv.backend.CredentialsPathStore;
+import nidelv.backend.Settings;
 
 public class SettingsPanel extends JPanel {
     private static final Preferences PREFS =
