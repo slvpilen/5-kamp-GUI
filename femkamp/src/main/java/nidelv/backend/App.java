@@ -1,43 +1,63 @@
 package nidelv.backend;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingUtilities;
 
-import nidelv.frontend.ConsoleWindow;
-import nidelv.frontend.SettingsWindow;
+import nidelv.frontend.MainFrame;
 
 public class App {
 
-    private static void run() {
+    /** Kjør én iterasjon av programmet. Logger feil i Console og tar kort pause ved krasj. */
+    private static void run(AtomicBoolean cancelFlag) {
         try {
-            ProgrammRunner programmRunner = new ProgrammRunner();
-            programmRunner.runProgram();
-        } catch (Exception e) {
-            e.printStackTrace(); // vises i ConsoleWindow (stderr er redirectet)
+            ProgrammRunner pr = new ProgrammRunner();
+            pr.runProgram(cancelFlag);   // bør returnere jevnlig og sjekke cancelFlag
+        } catch (Throwable t) {          // fang ALT så Console forblir oppe
+            t.printStackTrace();         // vises i ConsolePanel via redirect
             ProgrammRunner.takeBreak(10);
         }
     }
 
-    public static void main(String[] args) throws IOException, GeneralSecurityException {
-        CountDownLatch readyLatch = new CountDownLatch(1);
+    public static void main(String[] args) {
+        AtomicBoolean cancelFlag = new AtomicBoolean(true);
+        final Thread[] workerRef = new Thread[1];
 
-        // 1) Vis GUI for innstillinger (bruker trykker "Lagre/Start")
-        SwingUtilities.invokeLater(() -> new SettingsWindow(readyLatch));
+        SwingUtilities.invokeLater(() -> {
+            MainFrame frame = new MainFrame();
+            frame.redirectSystemStreams();
 
-        try {
-            // 2) Vent til bruker bekrefter
-            readyLatch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return;
-        }
+            frame.getSettingsPanel().onStart(() -> {
+                frame.getConsolePanel().clear();
+                frame.showConsole();
 
-        // 3) Åpne "terminal"-vindu og redirect System.out/err dit
-        ConsoleWindow.openAndRedirectSystemStreams();
+                if (workerRef[0] != null && workerRef[0].isAlive()) return;
 
-        // 4) Start programløkka
-        while (true) run();
+                cancelFlag.set(false);
+                Thread worker = new Thread(() -> {
+                    while (!cancelFlag.get()) {
+                        run(cancelFlag);
+                    }
+                }, "Femkamp-Worker");
+
+                worker.setDaemon(true);
+                worker.start();
+                workerRef[0] = worker;
+            });
+
+            frame.getConsolePanel().onBack(() -> {  
+                // 1) Gi bruker umiddelbar feedback/visuell respons
+                System.out.println("[Console] Tilbake trykket, stopper kjøring …");
+                frame.showSettings();                       // ← vis Settings med en gang
+                frame.getSettingsPanel().setInputsEnabled(true);
+
+                // 2) Stopp bakgrunnsløkken
+                cancelFlag.set(true);
+                Thread w = workerRef[0];
+                if (w != null) w.interrupt();              // ← prøv å vekke blokkert jobbing
+            });
+
+            frame.setVisible(true);
+            frame.showSettings();
+        });
     }
 }

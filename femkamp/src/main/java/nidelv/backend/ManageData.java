@@ -49,8 +49,10 @@ public class ManageData {
 
         boolean finnesNoenSomMangler = manglendeOutputSheets.size()>0;
 
-        if (finnesNoenSomMangler)
+        if (finnesNoenSomMangler) {
+            System.out.println("Fant manglende output sheets, oppretter disse: " + manglendeOutputSheets);
             GoogleDockReaderAndWriter.createNewSheetsOutput(manglendeOutputSheets);
+        }
     }
 
     

@@ -5,6 +5,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import nidelv.backend.Resultat.Lifter;
 
@@ -12,24 +13,25 @@ public class ProgrammRunner {
     ManageData manageData;
     List<Pulje> puljer;
 
-    public void runProgram() throws IOException, GeneralSecurityException {
+    public void runProgram(AtomicBoolean cancel) throws IOException, GeneralSecurityException {
 
+        System.out.println("Henter data...");
         manageData = new ManageData();
         manageData.createMissingOutputSheets();
         puljer = manageData.getPuljer();
 
 
         int iterationNumber = 0;
-        while (true) {
-            iteration();
+        while (!cancel.get()) {
+            iteration(cancel);
 
             iterationNumber++;
             System.out.println(iterationNumber);
         }
     }
 
-    private void iteration() throws IOException {
-  
+    private void iteration(AtomicBoolean cancel) throws IOException {
+
         puljer.forEach(p -> {
             try {
                 addLinesToOutPut(p);
@@ -48,7 +50,8 @@ public class ProgrammRunner {
         // deleting outputData
         GoogleDockReaderAndWriter.deletInputSheetData();
         GoogleDockReaderAndWriter.deletOutoutSheetData();
-            
+        if (cancel.get()) return;
+
         takeBreak(5);
 
         // laster inn data fra inputSheet og inn i programmet

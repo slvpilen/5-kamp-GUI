@@ -96,16 +96,23 @@ sudo rpm -i femkamp-1.0-1.x86_64.rpm
 
 ---
 
-### Windows (.exe)
-```powershell
-jpackage ^
-  --name Femkamp ^
-  --input target ^
-  --main-jar femkamp-1.0-SNAPSHOT-jar-with-dependencies.jar ^
-  --main-class nidelv.backend.App ^
-  --type exe ^
-  --win-shortcut ^
-  --win-menu
+### Windows (.msi) 
+#### OBS! Husk å øk app-version, dersom du vil installere på nytt
+```bash
+jpackage \
+  --name Femkamp \
+  --input target \
+  --main-jar femkamp-1.0-SNAPSHOT-jar-with-dependencies.jar \
+  --main-class nidelv.backend.App \
+  --type msi \
+  --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,jdk.crypto.ec,jdk.httpserver \
+  --icon "./src/main/resources/icon.ico" \
+  --win-menu --win-shortcut --win-per-user-install \
+  --app-version 1.0.7 \
+  --vendor "Femkamp" \
+
+
+
 ```
 
 ---
