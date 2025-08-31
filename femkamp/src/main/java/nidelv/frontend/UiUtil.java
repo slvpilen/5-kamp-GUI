@@ -25,6 +25,10 @@ public class UiUtil {
         return makeButton(text, new java.awt.Color(220, 80, 80));
     }
 
+    public static JButton makeOrangeButton(String text) {
+        return makeButton(text, new java.awt.Color(255, 140, 0));
+    }
+
     public static JButton makeButton(String text, java.awt.Color color) {
         JButton btn = new JButton(text);
         btn.setBackground(color);

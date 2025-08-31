@@ -72,8 +72,9 @@ public class Lifter {
 
 
         // validating femkampkategori
-        if (femkampKategori!= null && !this.femkampkategoriNavn.equals(femkampKategori.getName()))
-            addErrorMessage("Feil femkampkategori for: " + lofterNavn);
+        if (femkampKategori!= null && !this.femkampkategoriNavn.equals(femkampKategori.getName())) {
+            addErrorMessage("Feil femkampkategori. Femkampkategori skal være: " + femkampKategori.getName() + " Dersom du har byttet kategori, må du trykke restart på programmet.");
+        }
 
         double kroppsvekt = validateAndExctactKroppsvekt(lofterNavn, sheetLine);
         String kategori = validateAndExtractKategori(lofterNavn, sheetLine);
@@ -209,10 +210,10 @@ public class Lifter {
     }
 
     private void validateKjonn(String lofterNavn, String kategoriStreng) {
-        boolean gyldigKjonn = kategoriStreng.length() == 2 && (Arrays.asList('M', 'K').contains(kategoriStreng.charAt(1)) || Arrays.asList('M', 'K').contains(kategoriStreng.charAt(0)));
+        boolean gyldigKjonn = kategoriStreng.length() == 2 && (Arrays.asList('m', 'k').contains(kategoriStreng.toLowerCase().charAt(1)) || Arrays.asList('m', 'k').contains(kategoriStreng.toLowerCase().charAt(0)));
 
         if (!gyldigKjonn)
-            addErrorMessage(" er ugyldig, slutter ikke på M eller K");  
+            addErrorMessage("Kategori: " + kategoriStreng + " er ugyldig, slutter ikke på M eller K");  
 
     }
 

@@ -1,15 +1,26 @@
 package nidelv.frontend;
 
-import javax.swing.*;
-import javax.swing.text.DefaultCaret;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.text.DefaultCaret;
+
 import nidelv.backend.Settings;
+
 
 public class ConsolePanel extends JPanel {
     private final JTextArea area = new JTextArea(28, 110);
@@ -17,7 +28,12 @@ public class ConsolePanel extends JPanel {
     private final JButton btnOpenInput = new JButton("Åpne INPUT");
     private final JButton btnOpenOutput = new JButton("Åpne OUTPUT");
 
+    // NY: Restart-knapp
+    private final JButton restartBtn = UiUtil.makeOrangeButton("↻ Restart");
+
     private final List<Runnable> backListeners = new ArrayList<>();
+    // NY: Restart-listeners
+    private final List<Runnable> restartListeners = new ArrayList<>();
 
     public ConsolePanel() {
         super(new BorderLayout());
@@ -27,6 +43,8 @@ public class ConsolePanel extends JPanel {
         top.add(backBtn);
         top.add(btnOpenInput);
         top.add(btnOpenOutput);
+        // NY: vis restart-knapp
+        top.add(restartBtn);
 
         btnOpenInput.addActionListener(e -> UiUtil.openInBrowser(Settings.googleDockURL_input));
         btnOpenOutput.addActionListener(e -> UiUtil.openInBrowser(Settings.googleDockURL_output));
@@ -43,7 +61,11 @@ public class ConsolePanel extends JPanel {
             }
         });
 
-        // Console-område
+
+        restartBtn.addActionListener(e -> {
+            restartListeners.forEach(Runnable::run);
+        });
+        // Console-område (uendret)
         area.setEditable(false);
         area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
         area.setBackground(Color.BLACK);
@@ -65,14 +87,16 @@ public class ConsolePanel extends JPanel {
 
     /** Registrer callback for "Tilbake". */
     public void onBack(Runnable r) {
-        if (r != null)
-            backListeners.add(r);
+        if (r != null) backListeners.add(r);
+    }
+
+    /** NY: Registrer callback for "Restart". */
+    public void onRestart(Runnable r) {
+        if (r != null) restartListeners.add(r);
     }
 
     /** Tøm konsollen. */
-    public void clear() {
-        area.setText("");
-    }
+    public void clear() { area.setText(""); }
 
     /** Append tekst direkte (EDT-sikkert). */
     public void append(String s) {
@@ -84,9 +108,7 @@ public class ConsolePanel extends JPanel {
     }
 
     /** OutputStream til bruk for System.out/err redirect. */
-    public OutputStream getOutputStream() {
-        return new TextAreaOutputStream(area);
-    }
+    public OutputStream getOutputStream() { return new TextAreaOutputStream(area); }
 
     /** Koble System.out/err til dette panelet (kall én gang). */
     public void redirectSystemStreamsHere() {

@@ -22,7 +22,7 @@ public final class Pulje {
     private ArrayList<FemkampKategori> femkampKategoris = new ArrayList<>();
     private final List<Object> errorMeldinger = new ArrayList<>();
     private String lastCurrentOvelse;
-    private String currentOvelse = "rykk";
+    private String currentOvelse = "rykk"; // Default
 
 
     public Pulje(final String puljeName, List<List<Object>> values) throws IOException {
@@ -38,8 +38,9 @@ public final class Pulje {
 
         femkampKategoris.clear();
 
-        if (values == null || values.isEmpty())
+        if (values == null || values.isEmpty()){
             return;
+        }
             
         femkampKategoris.add(new FemkampKategori());
 
@@ -92,8 +93,9 @@ public final class Pulje {
         values = values.stream().filter(line -> !line.isEmpty()).collect(Collectors.toList());
         int numberOfLiftersInPulje = femkampKategoris.stream().mapToInt(femkampKat -> femkampKat.numberOfLifters()).sum();
         // -1 fordi første linje ikke skal telles, det er currentOvelse info
-        if (values.size()-1 != numberOfLiftersInPulje) 
-            throw new IllegalNumberOfLiftersException("feil antall løftere i dock og i programmet"); 
+        if (values.size()-1 != numberOfLiftersInPulje) {
+            throw new IllegalNumberOfLiftersException("Feil antall løftere i dock og i programmet"); 
+        }
         
         currentOvelse = extractCurrentOvelse(values);
 
@@ -106,6 +108,12 @@ public final class Pulje {
 
 
     private void updateAndvaluateNumbersOfLifters(String currentOvelse) {
+        if (femkampKategoris.isEmpty()) {
+            String errorMessage = "Klarte ikke å finne noen loftere i pulje " + puljeName;
+            errorMeldinger.add(errorMessage);
+
+            return;
+        }
 
         int currentFemkampKategoriIndex = 0;
         FemkampKategori currentFemkampKategori = femkampKategoris.get(0);
@@ -135,6 +143,14 @@ public final class Pulje {
                 currentFemkampKategoriIndex++;
                 currentFemkampKategori = femkampKategoris.get(currentFemkampKategoriIndex);
                 lifters = currentFemkampKategori.getLifters();
+                if (i < values.size()-1) {
+                    boolean nesteLinjeHarInnehold = !values.get(i+1).isEmpty();
+                    if (!nesteLinjeHarInnehold) {
+                        String errorMessage = "2 tomme linjer i mellom to puljer er ikke tillat ";
+                        errorMeldinger.add(errorMessage);
+                        return;
+                    }
+                }
             }
         }
     }

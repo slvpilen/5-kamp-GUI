@@ -159,7 +159,7 @@ public class GoogleDockReaderAndWriter {
     public static List<String> getInputSpreadSheetNamesContaining(String containing)
             throws IOException, GeneralSecurityException {
         List<String> sheetNames = getInputSpreadsheetNames();
-        return sheetNames.stream().filter(n -> n.contains(containing)).collect(Collectors.toList());
+        return sheetNames.stream().filter(n -> n.toLowerCase().contains(containing)).collect(Collectors.toList());
     }
 
     public static List<String> getInputSpreadsheetNames() throws IOException, GeneralSecurityException {
