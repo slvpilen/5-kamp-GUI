@@ -1,7 +1,5 @@
 package nidelv.backend;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.SwingUtilities;
@@ -15,8 +13,8 @@ public class App {
         try {
             ProgrammRunner pr = new ProgrammRunner();
             pr.runProgram(cancelFlag);   
-        } catch (IOException | GeneralSecurityException t) {        
-            t.printStackTrace(System.err);       
+        } catch (Exception e) {        
+            e.printStackTrace(System.err);       
             ProgrammRunner.takeBreak(10);
         }
     }
